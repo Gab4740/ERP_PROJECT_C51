@@ -2,24 +2,13 @@ import sys
 from datetime import datetime
 import math as m
 import locale
+import Onglet as ong
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout,
     QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog, QComboBox
 )
 from PyQt6.QtCore import QTimer, Qt
-
-class Onglet:
-    def __init__(self, name, role):
-        self.name = name
-        self.role = role
-        self.last_login = datetime.now()
-        
-    def get_role(self):
-        return self.role
-    
-    def get_name(self):
-        return self.role
 
 class MainWindow(QMainWindow):
     def __init__(self, width, height):
@@ -33,10 +22,8 @@ class MainWindow(QMainWindow):
         
         # ONGLETS EXISTANT
         self.onglets_existants = [  #EXEMPLES.....
-            Onglet("General", "any"),
-            Onglet("admin", "Admin"),
-            Onglet("boss", "Boss"),
-            Onglet("employe", "Employé"),
+            ong.Onglet_General("General", "any"),
+            ong.Onglet_Admin("Admin", "Admin")
         ]
         # GESTION ONGLETS ACTIFS
         self.tab_widget = QTabWidget()
@@ -46,18 +33,23 @@ class MainWindow(QMainWindow):
 
         # BOUTTONS DU CONTROL BAR
         self.quit_button = QPushButton("Quitter")
+        self.quit_button.setStyleSheet("QPushButton{padding: 2px; font-size: 24px}")
         self.quit_button.clicked.connect(self.close)
 
         self.back_button = QPushButton("Retour")
+        self.back_button.setStyleSheet("QPushButton{padding: 2px; font-size: 24px}")
         self.back_button.clicked.connect(self.go_back)
 
         self.sign_out_button = QPushButton("Déconnexion")
+        self.sign_out_button.setStyleSheet("QPushButton{padding: 2px; font-size: 24px}")
         self.sign_out_button.clicked.connect(self.sign_out)
 
         self.connect_button = QPushButton("Connexion")
+        self.connect_button.setStyleSheet("QPushButton{padding: 2px; font-size: 24px}")
         self.connect_button.clicked.connect(self.show_login_dialog)
         
         self.setting_button = QPushButton("Settings")
+        self.setting_button.setStyleSheet("QPushButton{padding: 2px; font-size: 24px}")
         #self.setting_button.clicked.connect(...)
 
         # CONTROL BAR
@@ -129,19 +121,12 @@ class MainWindow(QMainWindow):
 
     def create_tabs(self):
         for onglet in self.onglets_existants:
-            if self.user_role_can_access(onglet.get_role()) or onglet.get_role() == "any":
-                self.add_tab(onglet.name, onglet.get_role())
+            if self.user_role_can_access(onglet.get_visibility()) or onglet.get_visibility() == "any":
+                self.add_tab(onglet.name, onglet.get_widget())
 
-    def add_tab(self, name, user_role):
-        tab = QWidget()
-        layout = QVBoxLayout()
-
-        layout.addWidget(QLabel(f"Onglet créé par : {user_role}"))
-        layout.addWidget(QLabel(f"Heure de dernière connexion : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"))
-        tab.setLayout(layout)
-
-        self.tab_widget.addTab(tab, name)
-        self.tab_widget.setTabText(self.tab_widget.indexOf(tab), name)
+    def add_tab(self, name, ongle_widget):
+        self.tab_widget.addTab(ongle_widget, name)
+        self.tab_widget.setTabText(self.tab_widget.indexOf(ongle_widget), name)
 
     # A MODIFIER
     def user_role_can_access(self, role):
@@ -165,13 +150,12 @@ class MainWindow(QMainWindow):
         locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
         
         current_time = datetime.now().strftime("%H:%M:%S")
-        self.time_label.setText(f"Heure actuelle : {current_time}")
-        
         date = datetime.now()
         day_of_month = date.day
         day_of_week = date.strftime("%A").capitalize()
-        year = date.year
         
+        year = date.year
+        self.time_label.setText(f"Heure : {current_time}")
         self.date_label.setText(f"Date : {day_of_week} {day_of_month} {year}")
 
     def update_user_info(self, name, role):
@@ -239,7 +223,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     
     # STYLE SHEET
-    app.setStyleSheet("QPushButton{padding: 5px; font-size: 24px}")
     screen_info = app.primaryScreen().geometry()
     window = MainWindow(screen_info.width(), screen_info.height())
     
