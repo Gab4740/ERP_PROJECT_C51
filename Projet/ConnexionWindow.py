@@ -78,7 +78,7 @@ class Controleur:
 
     def se_connecter(self):
         username, password = self.connexion.obtenir_identifiants()
-        if self.modele.verifier_identifiants(username, password):
+        if self.modele.verifier_identifiants(username, password) is not None:
             self.connexion.afficher_message("Succès", "Connexion réussie !")
             self.connexion.basculer_vers_main_window()
         else:
