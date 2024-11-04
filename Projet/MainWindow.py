@@ -191,17 +191,17 @@ class MainWindow(QMainWindow):
         dialog.setLayout(layout)
         dialog.exec()
 
-    # A MODIFIER
-    def login(self, dialog):
-        username = self.username_input.text()
-        password = self.password_input.text()
+    # # A MODIFIER
+    # def login(self, dialog):
+    #     username = self.username_input.text()
+    #     password = self.password_input.text()
 
-        modele = Modele()
-        role = modele.verifier_identifiants(username, password)
-        print(role)
+    #     modele = Modele()
+    #     role = modele.verifier_identifiants(username, password)
+    #     print(role)
         
-        if role is not None:
-            self.update_user_info(username, role) 
-            dialog.accept()
-        else:
-            QMessageBox.warning(self, "Erreur de connexion", "Identifiant ou mot de passe incorrect.")
+    #     if role is not None:
+    #         self.update_user_info(username, role) 
+    #         dialog.accept()
+    #     else:
+    #         QMessageBox.warning(self, "Erreur de connexion", "Identifiant ou mot de passe incorrect.")

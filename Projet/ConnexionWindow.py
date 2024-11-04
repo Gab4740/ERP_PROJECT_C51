@@ -4,6 +4,13 @@ import sys
 import requests
 import MainWindow
 import client
+import multiprocessing  
+import server
+import init_db
+
+def lancer_serveur():
+    server.app.run(debug=True, use_reloader=False)  
+
 
 class Connexion(QMainWindow):
     def __init__(self, controleur, screen_info):
@@ -71,6 +78,11 @@ class Controleur:
         self.screen_info = screen_info
         self.app = app
         
+        init_db.initialize_db()
+        
+        self.process_serveur = multiprocessing.Process(target=lancer_serveur)
+        self.process_serveur.start()
+        
         self.modele = client.Modele()
         self.connexion = Connexion(self, self.screen_info)
         
@@ -87,6 +99,11 @@ class Controleur:
     def demarrer(self):
         self.connexion.show()
         sys.exit(self.app.exec())
+        
+    def __del__(self):
+        if self.process_serveur.is_alive():
+            self.process_serveur.terminate()
+            self.process_serveur.join()
 
 
 def main():

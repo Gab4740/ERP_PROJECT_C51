@@ -16,7 +16,7 @@ def login():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT visibilite FROM LOGIN WHERE username = ? AND password = ?", (username, password))
+    cursor.execute("SELECT visibilite FROM info_LOGIN WHERE username = ? AND password = ?", (username, password))
     user = cursor.fetchone()
     conn.close()
     

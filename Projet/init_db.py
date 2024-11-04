@@ -94,7 +94,7 @@ def initialize_db():
             id_employe INTEGER PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
-            visibilite TEXT NOT NULL,
+            visibilite INTEGER NOT NULL,
             FOREIGN KEY (id_employe) REFERENCES info_PERSONNEL(id_individus)
         )""")
 
@@ -213,7 +213,7 @@ def initialize_db():
         
         # Add initial login entry
         cursor.execute("""
-        INSERT OR IGNORE INTO LOGIN (id_employe, username, password, visibilite)
+        INSERT OR IGNORE INTO info_LOGIN (id_employe, username, password, visibilite)
         VALUES ((SELECT id_individus FROM info_PERSONNEL WHERE nom='Admin'), 'admin', 'admin', 0)
         """)
         
