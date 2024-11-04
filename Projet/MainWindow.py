@@ -4,6 +4,7 @@ import math as m
 import locale
 import Onglet as ong
 import requests
+import horaire as ho
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout,
@@ -25,7 +26,8 @@ class MainWindow(QMainWindow):
         # ONGLETS EXISTANT
         self.onglets_existants = [  #EXEMPLES.....
             ong.Onglet_General("General", "any"),
-            ong.Onglet_Admin("Admin", "Admin")
+            ong.Onglet_Admin("Admin", "Admin"),
+            ho.Onglet_horaire("Horraire", "any")
         ]
         # GESTION ONGLETS ACTIFS
         self.tab_widget = QTabWidget()
