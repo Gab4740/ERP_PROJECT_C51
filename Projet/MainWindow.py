@@ -155,8 +155,8 @@ class MainWindow(QMainWindow):
 
     def update_user_info(self, name, role = "Employé"):
         self.current_user_role = role
-        self.user_info_label.setText(f"Utilisateur : {name}" if role else "Utilisateur : Invité")
-        self.user_visibility.setText(f"Visibilité : {role}" if role else "Visibilité : Invité")
+        self.user_info_label.setText(f"Utilisateur : {name}" if role is not None else "Utilisateur : Invité")
+        self.user_visibility.setText(f"Visibilité : {role}" if role is not None else "Visibilité : Invité")
         self.tab_widget.clear()  # Vider les onglets existants
         self.create_tabs()  # Recréer les onglets en fonction du rôle
 
@@ -194,14 +194,12 @@ class MainWindow(QMainWindow):
         username = self.username_input.text()
         password = self.password_input.text()
 
-        if username == "admin" and password == "admin":
-            self.update_user_info(username, "Admin")
-            dialog.accept()
-        elif username == "boss" and password == "boss":
-            self.update_user_info(username, "Boss")
-            dialog.accept()
-        elif username == "employe" and password == "employe":
-            self.update_user_info(username, "Employé")
+        modele = Modele()
+        role = modele.verifier_identifiants(username, password)
+        print(role)
+        
+        if role is not None:
+            self.update_user_info(username, role) 
             dialog.accept()
         else:
             QMessageBox.warning(self, "Erreur de connexion", "Identifiant ou mot de passe incorrect.")
