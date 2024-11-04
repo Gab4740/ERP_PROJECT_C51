@@ -3,16 +3,18 @@ from datetime import datetime
 import math as m
 import locale
 import Onglet as ong
+import requests
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout,
-    QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog, QComboBox
+    QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog, QStackedWidget, QGridLayout
 )
 from PyQt6.QtCore import QTimer, Qt
 
 class MainWindow(QMainWindow):
-    def __init__(self, width, height):
+    def __init__(self, width, height, connexion):
         super().__init__()
+        self.parent_connexion = connexion
         
         # PARAMETRE DE BASE
         self.percent = 0.85                                                         #Pourcentage de l'ecran pris par l'app au lancement
@@ -43,10 +45,6 @@ class MainWindow(QMainWindow):
         self.sign_out_button = QPushButton("Déconnexion")
         self.sign_out_button.setStyleSheet("QPushButton{padding: 2px; font-size: 24px}")
         self.sign_out_button.clicked.connect(self.sign_out)
-
-        self.connect_button = QPushButton("Connexion")
-        self.connect_button.setStyleSheet("QPushButton{padding: 2px; font-size: 24px}")
-        self.connect_button.clicked.connect(self.show_login_dialog)
         
         self.setting_button = QPushButton("Settings")
         self.setting_button.setStyleSheet("QPushButton{padding: 2px; font-size: 24px}")
@@ -64,7 +62,6 @@ class MainWindow(QMainWindow):
         conn_discon_quit = QVBoxLayout()
         vbox_container2 = QWidget()
         vbox_container2.setLayout(conn_discon_quit)
-        conn_discon_quit.addWidget(self.connect_button)
         conn_discon_quit.addWidget(self.sign_out_button)
         conn_discon_quit.addWidget(self.quit_button)
 
@@ -116,8 +113,6 @@ class MainWindow(QMainWindow):
         container = QWidget()
         container.setLayout(main_layout)
         self.setCentralWidget(container)
-        
-        self.update_button_visibility()
 
     def create_tabs(self):
         for onglet in self.onglets_existants:
@@ -158,25 +153,17 @@ class MainWindow(QMainWindow):
         self.time_label.setText(f"Heure : {current_time}")
         self.date_label.setText(f"Date : {day_of_week} {day_of_month} {year}")
 
-    def update_user_info(self, name, role):
+    def update_user_info(self, name, role = "Employé"):
         self.current_user_role = role
         self.user_info_label.setText(f"Utilisateur : {name}" if role else "Utilisateur : Invité")
         self.user_visibility.setText(f"Visibilité : {role}" if role else "Visibilité : Invité")
         self.tab_widget.clear()  # Vider les onglets existants
         self.create_tabs()  # Recréer les onglets en fonction du rôle
-        self.update_button_visibility()
-
-    def update_button_visibility(self):
-        if self.current_user_role is None:
-            self.sign_out_button.setVisible(False)
-            self.connect_button.setVisible(True)
-        else:
-            self.sign_out_button.setVisible(True)
-            self.connect_button.setVisible(False)
 
     def sign_out(self):
         QMessageBox.information(self, "Déconnexion", "Vous êtes déconnecté.")
-        self.update_user_info("Invité", None)
+        self.parent_connexion.show()
+        self.close()
 
     # A MODIFIER
     def show_login_dialog(self):
@@ -190,7 +177,7 @@ class MainWindow(QMainWindow):
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
 
-        login_button = QPushButton("Se connecter")
+        login_button = QPushButton("Se Deconnecter")
         login_button.clicked.connect(lambda: self.login(dialog))
 
         layout.addWidget(username_label)
@@ -218,13 +205,3 @@ class MainWindow(QMainWindow):
             dialog.accept()
         else:
             QMessageBox.warning(self, "Erreur de connexion", "Identifiant ou mot de passe incorrect.")
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    
-    # STYLE SHEET
-    screen_info = app.primaryScreen().geometry()
-    window = MainWindow(screen_info.width(), screen_info.height())
-    
-    window.show()
-    sys.exit(app.exec())
