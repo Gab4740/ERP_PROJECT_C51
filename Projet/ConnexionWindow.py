@@ -72,7 +72,7 @@ class Connexion(QMainWindow):
         self.stacked_widget.setCurrentWidget(self.frame_connexion)
         
     def basculer_vers_main_window(self):
-        self.frame_main_window.update_user_info(self.entry_username.text())
+        self.frame_main_window.update_user_info(self.entry_username.text(), self.entry_password.text())
         self.entry_username.clear()
         self.entry_password.clear()
         self.frame_main_window.show()
