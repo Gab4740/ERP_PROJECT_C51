@@ -5,12 +5,14 @@ import locale
 import Onglet as ong
 import requests
 import horaire as ho
+import fetch
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout,
     QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog, QStackedWidget, QGridLayout
 )
 from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtGui import QPixmap
 
 class MainWindow(QMainWindow):
     def __init__(self, width, height, connexion):
@@ -34,6 +36,8 @@ class MainWindow(QMainWindow):
         self.tab_widget.currentChanged.connect(self.update_last_index)
         self.last_index = 0
         self.create_tabs()
+
+        self.add_logo_and_name()
 
         # BOUTTONS DU CONTROL BAR
         self.quit_button = QPushButton("Quitter")
@@ -74,7 +78,7 @@ class MainWindow(QMainWindow):
         self.user_visibility = QLabel()
         self.user_visibility.setStyleSheet("font-size: 24px; color: black; font-weight: bold;")
         self.user_info_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.update_user_info("Invité", None)
+        self.update_user_info("Invité", None, None)
         
         user_info = QVBoxLayout()
         vbox_container3 = QWidget()
@@ -116,6 +120,27 @@ class MainWindow(QMainWindow):
         container.setLayout(main_layout)
         self.setCentralWidget(container)
 
+    def add_logo_and_name(self):
+        top_right_widget = QWidget(self)
+        top_right_layout = QVBoxLayout(top_right_widget)
+
+        self.logo_label = QLabel(self)
+        self.logo_pixmap = QPixmap('./logo.png') # file png
+        self.logo_label.setPixmap(self.logo_pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio))  # Resize the logo
+        self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.enterprise_name_label = QLabel("Eugénie's Coffee", self)  # enterprise name
+        self.enterprise_name_label.setStyleSheet("font-size: 18px; color: black; font-weight: bold;")
+        self.enterprise_name_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+
+        top_right_layout.addWidget(self.logo_label)
+        top_right_layout.addWidget(self.enterprise_name_label)
+        
+        top_right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
+        top_right_widget.setLayout(top_right_layout)
+
+        self.layout().setMenuBar(top_right_widget)
+
     def create_tabs(self):
         for onglet in self.onglets_existants:
             if self.user_role_can_access(onglet.get_visibility()) or onglet.get_visibility() == "any":
@@ -155,9 +180,10 @@ class MainWindow(QMainWindow):
         self.time_label.setText(f"Heure : {current_time}")
         self.date_label.setText(f"Date : {day_of_week} {day_of_month} {year}")
 
-    def update_user_info(self, name, role = "Employé"):
+    def update_user_info(self, username, password, role = None):
+        role = fetch.fetch_visibilite(username, password)
         self.current_user_role = role
-        self.user_info_label.setText(f"Utilisateur : {name}" if role is not None else "Utilisateur : Invité")
+        self.user_info_label.setText(f"Utilisateur : {username}" if role is not None else "Utilisateur : Invité")
         self.user_visibility.setText(f"Visibilité : {role}" if role is not None else "Visibilité : Invité")
         self.tab_widget.clear()  # Vider les onglets existants
         self.create_tabs()  # Recréer les onglets en fonction du rôle
