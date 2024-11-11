@@ -17,7 +17,12 @@ class Connexion(QMainWindow):
         super().__init__()
         self.controleur = controleur
         self.setWindowTitle("Application ERP")
-        self.setGeometry(100, 100, 600, 400)
+        self.setGeometry(100, 100, 500, 300)
+        
+        # Mettre le widget centré dans l'écran
+        screen_center_x = (screen_info.width() - self.width()) // 2
+        screen_center_y = (screen_info.height() - self.height()) // 2 - 100
+        self.move(screen_center_x, screen_center_y)
 
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
@@ -33,6 +38,7 @@ class Connexion(QMainWindow):
     def creer_frame_connexion(self):
         widget = QWidget()
         layout = QVBoxLayout()
+        layout.setContentsMargins(50, 20, 50, 40)
 
         titre = QLabel("Connexion ERP")
         titre.setAlignment(Qt.AlignCenter)
@@ -40,6 +46,8 @@ class Connexion(QMainWindow):
         layout.addWidget(titre)
 
         form_layout = QGridLayout()
+        form_layout.setContentsMargins(50, 0, 50, 30)
+        
         self.entry_username = QLineEdit()
         self.entry_password = QLineEdit()
         self.entry_password.setEchoMode(QLineEdit.Password)
