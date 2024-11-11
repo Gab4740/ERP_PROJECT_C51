@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea
 from PySide6.QtCore import Qt
 
-class EmployeeList(QWidget):
+class ListeD(QWidget):
     def __init__(self, list_data, column_names, num_rows):
         super().__init__()
 
@@ -35,7 +35,7 @@ class EmployeeList(QWidget):
         self.add_column_headers()
 
         # Add employee rows to the layout
-        self.add_employee_rows()
+        self.add_rows()
 
     def add_column_headers(self):
         """
@@ -64,16 +64,16 @@ class EmployeeList(QWidget):
         # Add the header widget to the container layout
         self.container_layout.addWidget(header_widget)
 
-    def add_employee_rows(self):
+    def add_rows(self):
         """
         Add a number of employee rows to the list based on the employee data.
         Each row is represented by a QLabel in a horizontal layout.
         """
         for employee in self.employee_data:
-            row = self.create_employee_row(employee)
+            row = self.create_row(employee)
             self.container_layout.addWidget(row)
 
-    def create_employee_row(self, employee):
+    def create_row(self, employee):
         """
         Create a row (QWidget) to display employee data.
         Each employee is represented by a horizontal layout of labels.
