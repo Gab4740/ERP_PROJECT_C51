@@ -72,6 +72,10 @@ class Connexion(QMainWindow):
         
     def obtenir_identifiants(self):
         return self.entry_username.text(), self.entry_password.text()
+    
+    def closeEvent(self, event):
+        self.controleur.arreter_serveur()
+        event.accept() 
 
 class Controleur:
     def __init__(self, screen_info, app):
@@ -95,6 +99,11 @@ class Controleur:
             self.connexion.basculer_vers_main_window()
         else:
             self.connexion.afficher_message("Erreur", "Nom d'utilisateur ou mot de passe incorrect.")
+    
+    def arreter_serveur(self):
+        if self.process_serveur.is_alive():
+            self.process_serveur.terminate()
+            self.process_serveur.join()
 
     def demarrer(self):
         self.connexion.show()
@@ -104,7 +113,8 @@ class Controleur:
         if self.process_serveur.is_alive():
             self.process_serveur.terminate()
             self.process_serveur.join()
-
+        else:
+            self.arreter_serveur()
 
 def main():
     app = QApplication(sys.argv)
