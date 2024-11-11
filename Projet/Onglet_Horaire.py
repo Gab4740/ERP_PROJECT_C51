@@ -1,8 +1,5 @@
 # horaire.py
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout,
-    QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog, QComboBox,QTextEdit
-)
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QLineEdit, QComboBox,QTextEdit
 from Onglet import Onglet
 
 class Onglet_horaire(Onglet):

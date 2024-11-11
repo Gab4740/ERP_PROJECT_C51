@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import (QVBoxLayout, QPushButton, QLabel, QLineEdit, QDialog, QComboBox)
+from PySide6.QtWidgets import (QVBoxLayout, QPushButton, QLabel, QLineEdit, QDialog, QComboBox)
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import numpy as np

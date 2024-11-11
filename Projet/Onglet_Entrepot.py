@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QTextEdit
-import Onglet
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QTextEdit
+from Onglet import Onglet
 
 class Onglet_entrepot(Onglet):
     def __init__(self, name, visibility):
@@ -47,9 +47,8 @@ class Onglet_entrepot(Onglet):
         self.supprimer_button = QPushButton("Supprimer l'entrepôt")
         self.supprimer_button.clicked.connect(self.on_supprimer_clicked)  # Connexion au gestionnaire de suppression
         layout.addWidget(self.supprimer_button)
-
-        # Ajout du layout au widget de la fenêtre
-        self.setLayout(layout)
+        
+        self.widget.setLayout(layout)
 
     def on_recherche_clicked(self):
         """Gestionnaire du clic sur le bouton 'Recherche'"""
@@ -77,12 +76,8 @@ class Onglet_entrepot(Onglet):
         selected_entrepot = self.entrepot_combo.currentText()  # Récupère l'entrepôt sélectionné
 
         if selected_entrepot:
-            # Supprimer l'entrepôt sélectionné si ce n'est pas un entrepôt par défaut
-            if selected_entrepot not in ["Entrepôt A", "Entrepôt B", "Entrepôt C", "Entrepôt D"]:
-                self.entrepot_combo.removeItem(self.entrepot_combo.currentIndex())  # Retirer l'élément sélectionné
-                self.resultats_display.setText(f"Entrepôt '{selected_entrepot}' supprimé avec succès!")
-            else:
-                self.resultats_display.setText(f"Impossible de supprimer '{selected_entrepot}' : c'est un entrepôt par défaut.")
+           pass
+           # SUPPRIMER L'ENTREPOT ICI
         else:
             # Si aucun entrepôt n'est sélectionné
             self.resultats_display.setText("Veuillez sélectionner un entrepôt à supprimer.")

@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QTextEdit
-import Onglet
+from Onglet import Onglet
 
 class Onglet_magasin(Onglet):
     def __init__(self, name, visibility):
@@ -47,15 +47,12 @@ class Onglet_magasin(Onglet):
         self.supprimer_button = QPushButton("Supprimer le magasin")
         self.supprimer_button.clicked.connect(self.on_supprimer_clicked)  # Connexion au gestionnaire de suppression
         layout.addWidget(self.supprimer_button)
-
-        # Ajout du layout au widget de la fenêtre
-        self.setLayout(layout)
+        
+        self.widget.setLayout(layout)
 
     def load_magasin_list(self):
         """Charge les magasins disponibles depuis les fichiers dans le répertoire."""
-        magasins = [f[:-4] for f in os.listdir(self.magasin_directory) if f.endswith('.txt')]
-        self.magasin_combo.clear()
-        self.magasin_combo.addItems(magasins)
+        # CHERCHER LES MAGASINS DANS LA BD
 
     def on_recherche_clicked(self):
         """Gestionnaire du clic sur le bouton 'Recherche'"""

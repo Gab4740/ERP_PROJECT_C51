@@ -1,18 +1,14 @@
-import sys
 from datetime import datetime
 import math as m
 import locale
-import Onglet as ong
-import requests
-import horaire as ho
+import Onglet_Horaire as horraire
+import Onglet_Entrepot as entrepot
+import Onglet_Magasin as magasin
 import fetch
 
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout,
-    QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog, QStackedWidget, QGridLayout
-)
-from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtGui import QPixmap
+from PySide6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog
+from PySide6.QtCore import QTimer, Qt
+from PySide6.QtGui import QPixmap
 
 class MainWindow(QMainWindow):
     def __init__(self, width, height, connexion):
@@ -27,9 +23,9 @@ class MainWindow(QMainWindow):
         
         # ONGLETS EXISTANT
         self.onglets_existants = [  #EXEMPLES.....
-            ong.Onglet_General("General", "any"),
-            ong.Onglet_Admin("Admin", "Admin"),
-            ho.Onglet_horaire("Horraire", "any")
+            horraire.Onglet_horaire("Horraire", "any"),
+            magasin.Onglet_magasin("Magasins", "any"),
+            entrepot.Onglet_entrepot("Entrepots", "any")
         ]
         # GESTION ONGLETS ACTIFS
         self.tab_widget = QTabWidget()
@@ -191,6 +187,7 @@ class MainWindow(QMainWindow):
     def sign_out(self):
         QMessageBox.information(self, "Déconnexion", "Vous êtes déconnecté.")
         self.parent_connexion.show()
+        self.parent_connexion
         self.close()
 
     # A MODIFIER
@@ -216,18 +213,3 @@ class MainWindow(QMainWindow):
 
         dialog.setLayout(layout)
         dialog.exec()
-
-    # # A MODIFIER
-    # def login(self, dialog):
-    #     username = self.username_input.text()
-    #     password = self.password_input.text()
-
-    #     modele = Modele()
-    #     role = modele.verifier_identifiants(username, password)
-    #     print(role)
-        
-    #     if role is not None:
-    #         self.update_user_info(username, role) 
-    #         dialog.accept()
-    #     else:
-    #         QMessageBox.warning(self, "Erreur de connexion", "Identifiant ou mot de passe incorrect.")

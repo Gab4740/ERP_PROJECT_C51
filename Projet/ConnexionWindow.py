@@ -1,7 +1,6 @@
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QGridLayout, QStackedWidget)
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QGridLayout, QStackedWidget
 from PySide6.QtCore import Qt
 import sys
-import requests
 import MainWindow
 import client
 import multiprocessing  
@@ -9,8 +8,7 @@ import server
 import init_db
 
 def lancer_serveur():
-    server.app.run(debug=True, use_reloader=False)  
-
+    server.app.run(debug=True, use_reloader=False)
 
 class Connexion(QMainWindow):
     def __init__(self, controleur, screen_info):
@@ -18,7 +16,7 @@ class Connexion(QMainWindow):
         self.controleur = controleur
         self.setWindowTitle("Application ERP")
         self.setGeometry(100, 100, 500, 300)
-        
+    
         # Mettre le widget centré dans l'écran
         screen_center_x = (screen_info.width() - self.width()) // 2
         screen_center_y = (screen_info.height() - self.height()) // 2 - 100
@@ -89,11 +87,8 @@ class Controleur:
     def __init__(self, screen_info, app):
         self.screen_info = screen_info
         self.app = app
-        
+
         init_db.initialize_db()
-        
-        self.process_serveur = multiprocessing.Process(target=lancer_serveur)
-        self.process_serveur.start()
         
         self.modele = client.Modele()
         self.connexion = Connexion(self, self.screen_info)
@@ -108,22 +103,11 @@ class Controleur:
         else:
             self.connexion.afficher_message("Erreur", "Nom d'utilisateur ou mot de passe incorrect.")
     
-    def arreter_serveur(self):
-        if self.process_serveur.is_alive():
-            self.process_serveur.terminate()
-            self.process_serveur.join()
-
     def demarrer(self):
         self.connexion.show()
         sys.exit(self.app.exec())
         
-    def __del__(self):
-        if self.process_serveur.is_alive():
-            self.process_serveur.terminate()
-            self.process_serveur.join()
-        else:
-            self.arreter_serveur()
-
+        
 def main():
     app = QApplication(sys.argv)
     screen_info = app.primaryScreen().geometry()
