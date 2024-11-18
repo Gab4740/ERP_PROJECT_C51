@@ -120,7 +120,8 @@ CREATE TABLE rh.EMPLOYE (
     id_employe SERIAL PRIMARY KEY REFERENCES info.INFO_PERSONNEL(id_individus),
     id_horaire INTEGER REFERENCES rh.HORAIRE(id_horaire),
     id_poste INTEGER REFERENCES rh.POSTE(id_poste),
-    id_salaire INTEGER REFERENCES rh.SALAIRE(id_salaire)
+    id_salaire INTEGER REFERENCES rh.SALAIRE(id_salaire),
+    id_succursale INTEGER REFERENCES  succursales.SUCCURSALE(id_succursale)
 );
 
 CREATE TABLE info.LOGIN (
