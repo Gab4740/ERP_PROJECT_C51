@@ -123,7 +123,7 @@ class MainWindow(QMainWindow):
         top_right_layout = QVBoxLayout(top_right_widget)
 
         self.logo_label = QLabel(self)
-        self.logo_pixmap = QPixmap('./logo.png') # file png
+        self.logo_pixmap = QPixmap('../logo.png') # file png
         self.logo_label.setPixmap(self.logo_pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio))  # Resize the logo
         self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
