@@ -1,9 +1,11 @@
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QTextEdit
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QTextEdit, QDialog, QMessageBox, QWidget
 from Onglet import Onglet
+import fetch
 
 class Onglet_entrepot(Onglet):
-    def __init__(self, name, visibility):
+    def __init__(self, name, visibility, parent_widget=None):
         super().__init__(name, visibility)
+        self.parent_widget = parent_widget
 
     def create_content(self):
         # Création du layout principal
@@ -11,15 +13,16 @@ class Onglet_entrepot(Onglet):
 
         # Choisir l'entrepôt
         self.entrepot_combo = QComboBox()
-        self.entrepot_combo.addItems(["Entrepôt A", "Entrepôt B", "Entrepôt C", "Entrepôt D"])
+        self.load_entrepot_list()
+        #self.entrepot_combo.addItems(["Entrepôt A", "Entrepôt B", "Entrepôt C", "Entrepôt D"])
         layout.addWidget(QLabel("Choisir l'entrepôt:"))
         layout.addWidget(self.entrepot_combo)
 
         # Champ de recherche (optionnel, selon tes besoins)
-        self.recherche_input = QLineEdit()
-        self.recherche_input.setPlaceholderText("Entrez votre recherche")
-        layout.addWidget(QLabel("Recherche:"))
-        layout.addWidget(self.recherche_input)
+        # self.recherche_input = QLineEdit()
+        # self.recherche_input.setPlaceholderText("Entrez votre recherche")
+        # layout.addWidget(QLabel("Recherche:"))
+        # layout.addWidget(self.recherche_input)
 
         # Bouton de recherche
         self.recherche_button = QPushButton("Recherche")
@@ -33,10 +36,10 @@ class Onglet_entrepot(Onglet):
         layout.addWidget(self.resultats_display)
 
         # Ajouter un nouvel entrepôt
-        self.new_entrepot_input = QLineEdit()
-        self.new_entrepot_input.setPlaceholderText("Nom du nouvel entrepôt")
-        layout.addWidget(QLabel("Ajouter un nouvel entrepôt:"))
-        layout.addWidget(self.new_entrepot_input)
+        # self.new_entrepot_input = QLineEdit()
+        # self.new_entrepot_input.setPlaceholderText("Nom du nouvel entrepôt")
+        # layout.addWidget(QLabel("Ajouter un nouvel entrepôt:"))
+        # layout.addWidget(self.new_entrepot_input)
 
         # Bouton pour ajouter un entrepôt
         self.ajouter_button = QPushButton("Ajouter l'entrepôt")
@@ -49,35 +52,177 @@ class Onglet_entrepot(Onglet):
         layout.addWidget(self.supprimer_button)
         
         self.widget.setLayout(layout)
+    
+    def load_entrepot_list(self):
+        entrepots = fetch.fetch_entrepot()  # Récupère une liste de tuples (id_entrepot, nom)
+        self.entrepot_combo.clear()  # Vide la combo box actuelle
+
+        for entrepot in entrepots:
+            id_entrepot = entrepot[0]  # La première colonne est id_entrepot
+            nom = entrepot[2]  # La troisième colonne est le nom de l'entrepot dans info_INFO_CIE
+            self.entrepot_combo.addItem(nom, userData=id_entrepot)
+    
+    def get_info_by_nom(self, nom):
+        entrepots = fetch.fetch_entrepot()  
+        for row in entrepots:
+            if row[2] == nom:
+                return {
+                    "id_entrepot": row[0],
+                    "nom": row[2],
+                    "adresse": row[3],
+                    "telephone": row[4],
+                    "email": row[5],
+                    "type": row[6]
+                }
+        return None
 
     def on_recherche_clicked(self):
-        """Gestionnaire du clic sur le bouton 'Recherche'"""
-        entrepot = self.entrepot_combo.currentText()  # Obtient l'entrepôt sélectionné
-        recherche = self.recherche_input.text()  # Obtient la recherche entrée par l'utilisateur
+        entrepot = self.entrepot_combo.currentText()  # Obtient l'entrepot sélectionné
+        #recherche = self.recherche_input.text()  # Obtient la recherche entrée par l'utilisateur
+        
+        # Récupérer les infos de l'entrepot
+        infos_entrepot = self.get_info_by_nom(entrepot)
 
-        # Simuler une recherche (ici un simple message affiché pour l'exemple)
-        self.resultats_display.setText(f"Recherche '{recherche}' dans {entrepot}...\nRésultats : ...")
+        if infos_entrepot:
+            # Construire le texte à afficher
+            details = (
+                f"ID Entrepot : {infos_entrepot['id_entrepot']}\n"
+                f"Nom : {infos_entrepot['nom']}\n"
+                f"Adresse : {infos_entrepot['adresse']}\n"
+                f"Téléphone : {infos_entrepot['telephone']}\n"
+                f"Email : {infos_entrepot['email']}\n"
+                f"Type : {infos_entrepot['type']}\n"
+            )
+            self.resultats_display.setText(details)
+        else:
+            # Si aucune info trouvée
+            self.resultats_display.setText("Aucune information trouvée pour cet entrepôt.")
 
     def on_ajouter_clicked(self):
-        """Gestionnaire du clic sur le bouton 'Ajouter l'entrepôt'"""
-        new_entrepot = self.new_entrepot_input.text().strip()  # Récupère le texte saisi pour le nouvel entrepôt
+        dialog = AjouterEntrepotDialog(self.parent_widget if isinstance(self.parent_widget, QWidget) else None)
+        if dialog.exec():  # Si l'utilisateur valide le dialogue
+            data = {
+                "nom": dialog.nom_input.text().strip(),
+                "adresse": dialog.adresse_input.text().strip(),
+                "telephone": dialog.telephone_input.text().strip(),
+                "email": dialog.email_input.text().strip(),
+                "type_cie": dialog.type_input.text().strip(),
+            }
+            fetch.ajouter_entrepot(
+                nom=data["nom"],
+                adresse=data["adresse"],
+                telephone=data["telephone"],
+                email=data["email"],
+                type_cie=data["type_cie"],
+            )
+            QMessageBox.information(
+                self.parent_widget if isinstance(self.parent_widget, QWidget) else None,
+                "Succès",
+                "Entrepôt ajouté avec succès."
+            )
 
-        if new_entrepot:
-            # Ajout du nouvel entrepôt dans la liste déroulante
-            self.entrepot_combo.addItem(new_entrepot)
-            self.new_entrepot_input.clear()  # Effacer le champ de texte après l'ajout
-            self.resultats_display.setText(f"Entrepôt '{new_entrepot}' ajouté avec succès!")
         else:
-            # Si le champ est vide, on affiche un message d'erreur
-            self.resultats_display.setText("Veuillez entrer un nom d'entrepôt valide.")
+            QMessageBox.information(
+                self.parent_widget if isinstance(self.parent_widget, QWidget) else None,
+                "Annulé",
+                "Ajout annulé."
+            )
+        
+        self.load_entrepot_list()
 
     def on_supprimer_clicked(self):
-        """Gestionnaire du clic sur le bouton 'Supprimer l'entrepôt'"""
-        selected_entrepot = self.entrepot_combo.currentText()  # Récupère l'entrepôt sélectionné
+        selected_entrepot = self.entrepot_combo.currentText()  
 
         if selected_entrepot:
-           pass
-           # SUPPRIMER L'ENTREPOT ICI
+            # Demander confirmation à l'utilisateur
+            reply = QMessageBox.question(
+                self.parent_widget if isinstance(self.parent_widget, QWidget) else None,
+                "Confirmation",
+                f"Voulez-vous vraiment supprimer l'entrepôt '{selected_entrepot}' ?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                fetch.supprimer_entrepot(selected_entrepot)
+
+                # Afficher un message de succès
+                QMessageBox.information(self.parent_widget if isinstance(self.parent_widget, QWidget) else None, "Succès", f"L'entrepôt '{selected_entrepot}' a été supprimée.")
+
+                # Mettre à jour l'interface
+                self.load_entrepot_list()  
+                self.resultats_display.clear()  
+
         else:
-            # Si aucun entrepôt n'est sélectionné
             self.resultats_display.setText("Veuillez sélectionner un entrepôt à supprimer.")
+
+
+class AjouterEntrepotDialog(QDialog):
+    def __init__(self, parent=None):
+        # Si parent n'est pas un QWidget, le remplacer par None
+        if not isinstance(parent, QWidget):
+            parent = None
+        super().__init__(parent)
+        self.setWindowTitle("Ajouter un nouveau entrepôt")
+        self.setMinimumSize(400, 300)
+
+        # Champs de saisie
+        self.nom_input = QLineEdit(self)
+        self.adresse_input = QLineEdit(self)
+        self.telephone_input = QLineEdit(self)
+        self.email_input = QLineEdit(self)
+        self.type_input = QLineEdit(self)
+
+        # Mise en page
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel("Nom de l'entrepôt:"))
+        layout.addWidget(self.nom_input)
+        layout.addWidget(QLabel("Adresse:"))
+        layout.addWidget(self.adresse_input)
+        layout.addWidget(QLabel("Téléphone:"))
+        layout.addWidget(self.telephone_input)
+        layout.addWidget(QLabel("Email:"))
+        layout.addWidget(self.email_input)
+        layout.addWidget(QLabel("Type:"))
+        layout.addWidget(self.type_input)
+
+        # Boutons
+        buttons_layout = QHBoxLayout()
+        self.confirmer_button = QPushButton("Confirmer")
+        self.annuler_button = QPushButton("Annuler")
+
+        buttons_layout.addWidget(self.confirmer_button)
+        buttons_layout.addWidget(self.annuler_button)
+        layout.addLayout(buttons_layout)
+
+        self.setLayout(layout)
+
+        # Connecter les boutons
+        self.confirmer_button.clicked.connect(self.confirmer)
+        self.annuler_button.clicked.connect(self.reject)
+
+    def confirmer(self):
+        nom = self.nom_input.text().strip()
+        adresse = self.adresse_input.text().strip()
+        telephone = self.telephone_input.text().strip()
+        email = self.email_input.text().strip()
+        type_cie = self.type_input.text().strip()
+
+        if not nom:
+            QMessageBox.warning(self, "Erreur", "Le nom de l'entrepôt est obligatoire.")
+            return
+        if len(telephone) > 15:
+            QMessageBox.warning(self, "Erreur", "Le numéro de téléphone ne doit pas dépasser 15 caractères.")
+            return
+        if not email or "@" not in email:
+            QMessageBox.warning(self, "Erreur", "Veuillez entrer une adresse email valide.")
+            return
+
+        # Données validées
+        self.accept()
+        return {
+            "nom": nom,
+            "adresse": adresse,
+            "telephone": telephone,
+            "email": email,
+            "type_cie": type_cie,
+        }
