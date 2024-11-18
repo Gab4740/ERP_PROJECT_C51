@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QListWidget, QTextEdit, QLabel, QLineEdit, QListWidgetItem, QPushButton, QDialog, QFormLayout
 from Onglet import Onglet
+import sqlite3
 
 class Onglet_Employes(Onglet):
     def __init__(self, name, visibility):
@@ -112,11 +113,10 @@ class Onglet_Employes(Onglet):
         self.employee_details.setStyleSheet("""
             QTextEdit {
                 background-color: #f0f0f0;
+                background-color: #f7f7f7;
                 border: 1px solid #ccc;
                 border-radius: 5px;
-                font-family: Arial;
-                font-size: 14px;
-                padding: 10px;
+                padding: 5px;
             }
         """)
         
@@ -124,10 +124,10 @@ class Onglet_Employes(Onglet):
         self.modify_button.setStyleSheet("""
             QPushButton {
                 background-color: #5a9fff;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                padding: 10px;
+                color: black;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
                 font-size: 14px;
             }
             QPushButton:hover {
@@ -206,6 +206,47 @@ class Onglet_Employes(Onglet):
 
             # After closing the dialog, update the employee list with any changes
             self.update_employee_list()
+    
+    
+    
+    ## A DEPLACER DANS LE DOCUEMNT fetch.py      
+    def ajouter_nouveau_employe(self, nas, nom ,prenom, date_naissance, email, telephone, adresse, id_succursale, id_poste):
+        conn = sqlite3.connect('erp.db')
+        cursor = conn.cursor()
+        try:
+            # Ajouter les informations de l'entité (INFO_CIE)
+            cursor.execute("""
+                INSERT INTO info.INFO_PERSONNEL (nas, nom, prenom, date_naissance, email, telephone, adresse)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (nas, nom, prenom, date_naissance, email, telephone, adresse))
+            
+            # Récupérer l'ID de l'entité insérée
+            id_entite = cursor.lastrowid
+            
+            # Ajouter la succursale associée
+            cursor.execute("""
+                INSERT INTO rh.EMPLOYE (id_employe)
+                VALUES (?)
+            """, (id_entite,))
+            
+            cursor.execute("""
+                INSERT INTO rh.EMPLOYE (id_succursale)
+                VALUES (?)
+            """, (id_succursale,))
+            
+            cursor.execute("""
+                INSERT INTO rh.EMPLOYE (id_poste)
+                VALUES (?)
+            """, (id_poste,))
+            
+            conn.commit()
+            print(f"Succursale '{nom}' ajoutée avec succès.")
+        except sqlite3.Error as e:
+            print(f"Erreur SQL : {e}")
+            raise e
+        finally:
+            conn.close()
+
 
 
 class ModifyEmployeeDialog(QDialog):
