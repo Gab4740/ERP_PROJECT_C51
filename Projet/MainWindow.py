@@ -24,7 +24,7 @@ class MainWindow(QMainWindow):
         # ONGLETS EXISTANT
         self.onglets_existants = [  #EXEMPLES.....
             horraire.Onglet_horaire("Horraire", "any"),
-            magasin.Onglet_magasin("Magasins", "any"),
+            magasin.Onglet_magasin("Magasins", "any", parent_widget=self),
             entrepot.Onglet_entrepot("Entrepots", "any")
         ]
         # GESTION ONGLETS ACTIFS
