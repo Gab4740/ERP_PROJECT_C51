@@ -5,6 +5,7 @@ import Onglet_Horaire as horraire
 import Onglet_Entrepot as entrepot
 import Onglet_Magasin as magasin
 import Onglet_Employes as employes
+import Onglet_Usagers as usagers
 import fetch
 
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog
@@ -26,8 +27,10 @@ class MainWindow(QMainWindow):
         self.onglets_existants = [
             horraire.Onglet_horaire("Horaire", "any"),
             magasin.Onglet_magasin("Magasins", "any", parent_widget=self),
-            entrepot.Onglet_entrepot("Entrepôts", "any", parent_widget=self)
-            employes.Onglet_Employes("Employés", "any")
+            entrepot.Onglet_entrepot("Entrepôts", "any", parent_widget=self),
+            employes.Onglet_Employes("Employés", "any"),
+            usagers.Onglet_usagers("Usagers", "any")
+            
         ]
         # GESTION ONGLETS ACTIFS
         self.tab_widget = QTabWidget()
