@@ -257,24 +257,142 @@ def supprimer_entrepot(nom_entrepot):
 
 
 ############################
-######## COMMANDE ##########
+####### COMMANDES ##########
 ############################
-def fetch_commande():
+def fetch_commandes():
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM finances_COMMANDES") # changer la requête selon le besoin
-    results = cursor.fetchall() 
+    cursor.execute("""
+        SELECT id_commande, date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut
+        FROM finances_COMMANDES
+    """)
+    result = cursor.fetchall()
     conn.close()
-    results_dict = [
-        {
-            "id_commande": result[0],
-            "date_commande ": result[1],
-            "cout_apres_taxe": result[2],
-            "cout_avant_taxe": result[3]
-        }
-        for result in results
-    ]
-    return results_dict
+    return result
+
+def ajouter_commande(date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO finances_COMMANDES (date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut)
+        VALUES (?, ?, ?, ?, ?)
+    """, (date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut))
+    conn.commit()
+    conn.close()
+
+
+def modifier_commande(id_commande, cout_apres_taxe, cout_avant_taxe, statut):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    # Vérification du statut
+    cursor.execute("SELECT statut FROM finances_COMMANDES WHERE id_commande = ?", (id_commande,))
+    current_statut = cursor.fetchone()
+
+    if not current_statut or current_statut[0] == "Expédiée":
+        conn.close()
+        raise ValueError("Impossible de modifier une commande déjà expédiée.")
+
+    # Mise à jour
+    cursor.execute("""
+        UPDATE finances_COMMANDES
+        SET cout_apres_taxe = ?, cout_avant_taxe = ?, statut = ?
+        WHERE id_commande = ?
+    """, (cout_apres_taxe, cout_avant_taxe, statut, id_commande))
+    conn.commit()
+    conn.close()
+
+
+
+def supprimer_commande(id_commande):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    # Vérification du statut et du délai
+    cursor.execute("""
+        SELECT statut, date_commande
+        FROM finances_COMMANDES
+        WHERE id_commande = ?
+    """, (id_commande,))
+    result = cursor.fetchone()
+
+    if not result:
+        conn.close()
+        raise ValueError("Commande introuvable.")
+
+    statut, date_commande = result
+    from datetime import datetime, timedelta
+
+    if statut == "Expédiée":
+        conn.close()
+        raise ValueError("Impossible de supprimer une commande déjà expédiée.")
+
+    # Vérifier si le délai de 7 jours est respecté
+    if datetime.now() - datetime.strptime(date_commande, "%Y-%m-%d") > timedelta(days=7):
+        conn.close()
+        raise ValueError("Impossible de supprimer une commande après 7 jours.")
+
+    # Suppression
+    cursor.execute("DELETE FROM finances_COMMANDES WHERE id_commande = ?", (id_commande,))
+    conn.commit()
+    conn.close()
+
+def get_acheteur_nom(id_acheteur):
+    """
+    Récupère le nom de l'acheteur (client, succursale ou entrepôt) en fonction de son ID.
+    """
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    # Vérifier dans les clients
+    cursor.execute("""
+        SELECT info_PERSONNEL.nom || ' ' || info_PERSONNEL.prenom AS nom
+        FROM clients_CLIENT
+        INNER JOIN info_PERSONNEL ON clients_CLIENT.id_employe = info_PERSONNEL.id_individus
+        WHERE clients_CLIENT.id_client = ?
+    """, (id_acheteur,))
+    result = cursor.fetchone()
+    if result:
+        conn.close()
+        return result[0]  # Nom trouvé dans les clients
+
+    # Vérifier dans les succursales
+    cursor.execute("""
+        SELECT info_CIE.nom
+        FROM succursales_SUCCURSALE
+        INNER JOIN info_CIE ON succursales_SUCCURSALE.id_info = info_CIE.id_entite
+        WHERE succursales_SUCCURSALE.id_succursale = ?
+    """, (id_acheteur,))
+    result = cursor.fetchone()
+    if result:
+        conn.close()
+        return result[0]  # Nom trouvé dans les succursales
+
+    # Vérifier dans les entrepôts
+    cursor.execute("""
+        SELECT info_CIE.nom
+        FROM entrepots_ENTREPOT
+        INNER JOIN info_CIE ON entrepots_ENTREPOT.id_info = info_CIE.id_entite
+        WHERE entrepots_ENTREPOT.id_entrepot = ?
+    """, (id_acheteur,))
+    result = cursor.fetchone()
+    conn.close()
+    if result:
+        return result[0]  # Nom trouvé dans les entrepôts
+
+    return "Inconnu"  # Aucun nom trouvé
+
+
+############################
+####### TAXES ##########
+############################
+def fetch_taxes():
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT TPS, TVQ FROM finances_TAXES")
+    taxes = cursor.fetchone()
+    conn.close()
+    return taxes
 
 
 
