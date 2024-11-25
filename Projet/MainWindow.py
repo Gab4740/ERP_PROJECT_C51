@@ -7,6 +7,7 @@ import Onglet_Magasin as magasin
 import Onglet_Employes as employes
 import Onglet_Client as clients
 import Onglet_Usagers as usagers
+import Onglet_Commande as commande
 import Onglet_Fournisseurs as fournisseurs
 import fetch
 
@@ -31,6 +32,7 @@ class MainWindow(QMainWindow):
             magasin.Onglet_magasin("Magasins", "any", parent_widget=self),
             entrepot.Onglet_entrepot("Entrepôts", "any", parent_widget=self),
             clients.Onglet_Client("Clients", "any", parent_widget=self),
+            commande.Onglet_Commande("Commandes", "any", parent_widget=self),
             employes.Onglet_Employes("Employés", "any"),
             usagers.Onglet_usagers("Usagers", "any"),
             fournisseurs.Onglet_Fournisseurs("Fournisseurs", "any")
