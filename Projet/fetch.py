@@ -78,11 +78,39 @@ def fetch_employe():
     conn.close()
     return result[0] if result else None
 
-<<<<<<< Updated upstream
-def ajouter_employe():
-    pass
+def add_employee_to_db(nas, nom, prenom, date_naissance, email, telephone, adresse=None, id_horaire=None, id_poste=None, id_salaire=None, id_succursale=None):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
 
-=======
+    try:
+        # Insertion de l'employé dans la table info.INFO_PERSONNEL
+        cursor.execute('''
+            INSERT INTO info_PERSONNEL (NAS, nom, prenom, date_naissance, email, telephone, adresse)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (nas, nom, prenom, date_naissance, email, telephone, adresse))
+        
+        id_individus = cursor.lastrowid
+
+        # Insertion dans la table rh.EMPLOYE avec des valeurs NULL autorisées pour id_horaire, id_poste, id_salaire
+        cursor.execute('''
+            INSERT INTO rh_EMPLOYE (id_employe, id_horaire, id_poste, id_salaire, id_succursale)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (id_individus, id_horaire, id_poste, id_salaire, id_succursale))
+
+        conn.commit()
+        print("L'employé a été ajouté avec succès dans les deux tables.")
+    except sqlite3.IntegrityError as e:
+        print(f"Erreur d'intégrité : {e}")
+    except Exception as e:
+        print(f"Une erreur s'est produite : {e}")
+    finally:
+        conn.close()
+        
+#def get_employees_by_succursale(nom_succursale):
+#    conn = sqlite3.connect('erp.db')
+#    cursor = conn.cursor()
+
+
 def ajouter_horaire(id_employe, id_jour_de_travail, heure_debut, heure_fin):
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()
@@ -97,8 +125,6 @@ def ajouter_horaire(id_employe, id_jour_de_travail, heure_debut, heure_fin):
     print(f"Horaire ajouté pour l'employé {id_employe} le jour {id_jour_de_travail}.")
 
     conn.close()
-    
->>>>>>> Stashed changes
 
 ############################
 ###### SUCCURSALE ##########
@@ -120,7 +146,44 @@ def fetch_succursale():
     
     return result
 
+def get_succursale_id_by_name(nom):
+    conn = sqlite3.connect('erp.db') 
+    cursor = conn.cursor()
 
+    try:
+        # Recherche dans info.INFO_CIE pour récupérer l'id_info en fonction du nom
+        cursor.execute('''
+            SELECT id_entite FROM info_CIE WHERE nom = ?
+        ''', (nom,))
+        
+        # Récupérer l'id_entite (id_info)
+        result = cursor.fetchone()
+        
+        if result:
+            id_info = result[0]
+            # Recherche dans succursales.SUCCURSALE avec l'id_info trouvé pour récupérer l'id_succursale
+            cursor.execute('''
+                SELECT id_succursale FROM succursales_SUCCURSALE WHERE id_info = ?
+            ''', (id_info,))
+            
+            # Récupérer l'id_succursale
+            succursale_result = cursor.fetchone()
+            
+            if succursale_result:
+                return succursale_result[0]
+            else:
+                print("Aucune succursale trouvée pour cet id_info.")
+                return None
+        else:
+            print("Aucun enregistrement trouvé pour ce nom dans INFO_CIE.")
+            return None
+            
+    except sqlite3.Error as e:
+        print(f"Une erreur s'est produite : {e}")
+        return None
+    finally:
+        conn.close()
+        
 def ajouter_succursale(nom, adresse, telephone, email, type_cie):
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()

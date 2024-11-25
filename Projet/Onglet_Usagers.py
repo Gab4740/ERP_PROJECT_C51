@@ -85,12 +85,12 @@ class Onglet_usagers(Onglet):
         self.widget.setLayout(layout)
         
         self.widget.setStyleSheet("""
-            /* Global styles */
             QWidget {
                 background-color: #f7f7f7;
                 font-family: Arial, sans-serif;
                 font-size: 14px;
-                padding: 20px;
+                padding: 10px;
+                width: 500px;
             }
 
             QGroupBox {
@@ -102,7 +102,7 @@ class Onglet_usagers(Onglet):
             }
 
             QGroupBox:title {
-                font-size: 16px;
+                font-size: 25px;
                 font-weight: bold;
                 color: #4CAF50;
                 padding: 0 10px;
@@ -124,7 +124,7 @@ class Onglet_usagers(Onglet):
             QLabel {
                 font-size: 14px;
                 color: #333;
-                width: 150px; 
+                width: fit-content;
                 min-width: 150px;
             }
 
@@ -147,64 +147,112 @@ class Onglet_usagers(Onglet):
             QPushButton:pressed {
                 background-color: #3e8e41;
             }
-
-            /* Adjusting for small screens */
-            @media (max-width: 600px) {
-                QWidget {
-                    padding: 10px;
-                }
-
-                QLineEdit, QComboBox, QDateEdit {
-                    font-size: 12px;
-                }
-
-                QPushButton {
-                    font-size: 14px;
-                    padding: 12px;
-                }
-            }
         """)
+        
+    def validate_fields(self):
+        # Vérifier chaque champ avec regex
+
+        # Validation du nom et prénom : uniquement des lettres, max 40 caractères
+        name_regex = r"^[A-Za-zÀ-ÿ]{1,40}$"
+        surname_regex = r"^[A-Za-zÀ-ÿ]{1,40}$"
+        
+        # Validation du NAS : ###-###-###
+        nas_regex = r"^\d{3}-\d{3}-\d{3}$"
+        
+        # Validation de la date de naissance : YYYY-MM-DD
+        birthday_regex = r"^\d{4}-\d{2}-\d{2}$"
+        
+        # Validation de l'email : format standard
+        email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        
+        # Validation du salaire : format numérique ##.##
+        salary_regex = r"^\d{1,2}(\.\d{2})?$"
+        
+        # Validation du telephone : format numérique ###-###-####
+        telephone_regex = r"^\d{3}-\d{3}-\d{4}$"
+
+        # Validation
+        if not re.match(name_regex, self.name_input.text()):
+            self.show_error("Le nom doit contenir uniquement des lettres et être de 1 à 40 caractères.")
+            return
+        
+        if not re.match(surname_regex, self.surname_input.text()):
+            self.show_error("Le prénom doit contenir uniquement des lettres et être de 1 à 40 caractères.")
+            return
+        
+        if not re.match(nas_regex, self.nas_input.text()):
+            self.show_error("Le NAS doit être au format ### - ### - ###.")
+            return
+        
+        if not re.match(birthday_regex, self.birthday_input.text()):
+            self.show_error("La date de naissance doit être au format YYYY-MM-DD.")
+            return
+        
+        if not re.match(email_regex, self.email_input.text()):
+            self.show_error("L'email n'est pas valide.")
+            return
+        
+        if not re.match(salary_regex, self.salary_input.text()):
+            self.show_error("Le salaire doit être un nombre avec deux décimales (ex. 18.56).")
+            return
+        
+        if not re.match(telephone_regex, self.phone_input.text()):
+            self.show_error("Numéro de telephone mal entré : ### - ### - ####")
+            return
+        
+        self.show_success("Tous les champs sont valides !")
+        return True
+
+    def show_error(self, message):
+        """ Afficher un message d'erreur """
+        QMessageBox.warning(self.widget, "Erreur", message)
+
+    def show_success(self, message):
+        """ Afficher un message de succès """
+        QMessageBox.information(self.widget, "Succès", message)
        
     def on_save_clicked(self):
         # Gather form data
+        nas = self.nas_input.text()
         name = self.name_input.text().strip()
+        surname = self.surname_input.text()
+        date_naisscance = self.birthday_input.text()
+        adresse = self.adress_input.text()
         job_title = self.job_title_input.currentText()
         succursale = self.succursale_associe.currentText()
         email = self.email_input.text().strip()
         phone = self.phone_input.text().strip()
         salary = self.salary_input.text().strip()
-        
-        pattern = r"^\d{3}-\d{3}-\d{4}$"
-        if not re.match(pattern, phone):
-            QMessageBox.warning(self.widget, "Erreur", "Numéro de telephone mal entré")
-            return
 
-        if not name or not email or not phone:
-            QMessageBox.warning(self.widget, "Erreur", "Nom, email et téléphone sont obligatoires.")
-            return
+        if self.validate_fields():
+            QMessageBox.information(self.widget, "Succès", "L'employé a été enregistré avec succès.")
+            self.reset_form()
+            
+            succursale_id = fetch.get_succursale_id_by_name(succursale)
 
-        # Call the function to save the employee in the database
-        #fetch.add_employee(
-        #    name=name,
-        #    job_title=job_title,
-        #    email=email,
-        #    phone=phone,
-        #    start_date=start_date,
-        #    salary=salary
-        #)
-
-        # Show success message
-        QMessageBox.information(self.widget, "Succès", "L'employé a été enregistré avec succès.")
-        self.reset_form()
+            fetch.add_employee_to_db(
+                nas,
+                name,
+                surname,
+                date_naisscance,
+                email,
+                phone,
+                adresse,
+                None,
+                None,
+                None,
+                succursale_id
+            )
 
     def on_reset_clicked(self):
         self.reset_form()
 
     def reset_form(self):
-        # Reset the form fields
         self.name_input.clear()
-        self.job_title_input.clear()
+        self.surname_input.clear()
+        self.nas_input.clear()
+        self.birthday_input.clear()
         self.email_input.clear()
         self.phone_input.clear()
+        self.adress_input.clear()
         self.salary_input.clear()
-        self.start_date_input.setDate(self.start_date_input.minimumDate())

@@ -83,10 +83,12 @@ def initialize_db():
             id_horaire INTEGER,
             id_poste INTEGER,
             id_salaire INTEGER,
+            id_succursale INTEGER,
             FOREIGN KEY (id_employe) REFERENCES info_PERSONNEL(id_individus),
             FOREIGN KEY (id_horaire) REFERENCES rh_HORAIRE(id_horaire),
             FOREIGN KEY (id_poste) REFERENCES rh_POSTE(id_poste),
-            FOREIGN KEY (id_salaire) REFERENCES rh_SALAIRE(id_salaire)
+            FOREIGN KEY (id_salaire) REFERENCES rh_SALAIRE(id_salaire),
+            FOREIGN KEY (id_succursale) REFERENCES succursales_SUCCURSALE(id_succursale)
         )""")
 
         cursor.execute("""

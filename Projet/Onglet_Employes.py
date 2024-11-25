@@ -1,38 +1,15 @@
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QListWidget, QTextEdit, QLabel, QLineEdit, QListWidgetItem, QPushButton, QDialog, QFormLayout
 from Onglet import Onglet
 import sqlite3
+import fetch
 
 class Onglet_Employes(Onglet):
     def __init__(self, name, visibility):
         super().__init__(name, visibility)
 
     def create_content(self):
-        
-        # SELECT FROM DATABASE
-        self.shops = ['Shop 1', 'Shop 2', 'Shop 3']
-        self.employees = {
-            'Shop 1': [
-                {'name': 'Alice', 'position': 'Manager', 'email': 'alice@shop1.com', 'phone': '123-456-7890'},
-                {'name': 'Bob', 'position': 'Cashier', 'email': 'bob@shop1.com', 'phone': '123-456-7891'}
-            ],
-            'Shop 2': [
-                {'name': 'Charlie', 'position': 'Technician', 'email': 'charlie@shop2.com', 'phone': '123-456-7892'},
-                {'name': 'David', 'position': 'Cashier', 'email': 'david@shop2.com', 'phone': '123-456-7893'}
-            ],
-            'Shop 3': [
-                {'name': 'Eve', 'position': 'Manager', 'email': 'eve@shop3.com', 'phone': '123-456-7894'},
-                {'name': 'Frank', 'position': 'Technician', 'email': 'frank@shop3.com', 'phone': '123-456-7895'}
-            ]
-        }
-
-
-
-
-
-
-
-        self.current_shop = self.shops[0]
-        self.selected_employee = None
+        self.shops = fetch.fetch_succursale()    
+        print(self.shops)
 
         # Initialize the UI
         self.widget.setLayout(self.init_ui())
@@ -46,7 +23,8 @@ class Onglet_Employes(Onglet):
         
         # Shop dropdown
         self.shop_combo = QComboBox()
-        self.shop_combo.addItems(self.shops)
+        for s in self.shops:
+            self.shop_combo.addItem(s[2])
         self.shop_combo.currentTextChanged.connect(self.on_shop_changed)
         left_layout.addWidget(self.shop_combo)
 
@@ -140,29 +118,26 @@ class Onglet_Employes(Onglet):
         main_layout.addLayout(right_layout)
 
         # Set the initial shop and employee list
-        self.on_shop_changed(self.shops[0])
+        self.on_shop_changed(self.shops[0][2])
         
         return main_layout
 
     def on_shop_changed(self, shop_name):
         """Update the employee list when a new shop is selected."""
         self.current_shop = shop_name
-        self.update_employee_list()
+        self.update_employee_list(shop_name)
 
-    def update_employee_list(self):
-        """Update the employee list on the left side based on the current shop."""
-        # Get employee data for the selected shop
-        employees = self.employees.get(self.current_shop, [])
-
-        # Sort the employee names alphabetically
-        employees_sorted = sorted(employees, key=lambda x: x['name'].lower())
+    def update_employee_list(self, shop_name):
+        print(shop_name)
+        employee = fetch.get_employees_by_succursale(shop_name)
+        print(employee, " lololol ")
 
         # Clear the current list
         self.employee_list.clear()
 
         # Add employee names to the list widget
-        for employee in employees_sorted:
-            self.employee_list.addItem(employee['name'])
+        #for emp in employee:
+        #    self.employee_list.addItem(employee['name'])
 
     def on_employee_clicked(self, item):
         """Display the selected employee's details in the right section."""
