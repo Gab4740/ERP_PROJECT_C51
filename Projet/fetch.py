@@ -78,11 +78,7 @@ def fetch_employe():
     conn.close()
     return result[0] if result else None
 
-<<<<<<< Updated upstream
-def ajouter_employe():
-    pass
 
-=======
 def ajouter_horaire(id_employe, id_jour_de_travail, heure_debut, heure_fin):
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()
@@ -97,8 +93,6 @@ def ajouter_horaire(id_employe, id_jour_de_travail, heure_debut, heure_fin):
     print(f"Horaire ajouté pour l'employé {id_employe} le jour {id_jour_de_travail}.")
 
     conn.close()
-    
->>>>>>> Stashed changes
 
 ############################
 ###### SUCCURSALE ##########
