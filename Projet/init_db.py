@@ -122,7 +122,7 @@ def initialize_db():
         CREATE TABLE IF NOT EXISTS clients_CLIENT (
             id_client INTEGER PRIMARY KEY AUTOINCREMENT,
             id_employe INTEGER,
-            type INTEGER NOT NULL,
+            type TEXT NOT NULL,
             FOREIGN KEY (id_employe) REFERENCES info_PERSONNEL(id_individus)
         )""")
 
