@@ -48,6 +48,24 @@ def fetch_produit():
     ]
     return results_dict
 
+############################
+######### HORAIRE ##########
+############################
+def fetch_horaire():
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM rh.HORAIRE")
+    result = cursor.fetchall()
+    conn.close()
+    results_dict = [
+        {
+            "id_horaire": result[0],
+            "id_conges": result[1],
+            "id_jour_de_travail": result[2]
+        }
+        for result in result
+    ]
+    return results_dict
 
 ############################
 ######## EMPLOYÉ ###########
@@ -60,9 +78,27 @@ def fetch_employe():
     conn.close()
     return result[0] if result else None
 
+<<<<<<< Updated upstream
 def ajouter_employe():
     pass
 
+=======
+def ajouter_horaire(id_employe, id_jour_de_travail, heure_debut, heure_fin):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    # Insertion de l'horaire dans la table HORAIRE
+    cursor.execute("""
+        INSERT INTO rh.HORAIRE (id_employe, id_jour_de_travail, heure_debut, heure_fin)
+        VALUES (?, ?, ?, ?)
+    """, (id_employe, id_jour_de_travail, heure_debut, heure_fin))
+
+    conn.commit()
+    print(f"Horaire ajouté pour l'employé {id_employe} le jour {id_jour_de_travail}.")
+
+    conn.close()
+    
+>>>>>>> Stashed changes
 
 ############################
 ###### SUCCURSALE ##########
