@@ -147,8 +147,10 @@ def initialize_db():
             cout_apres_taxe REAL NOT NULL,
             cout_avant_taxe REAL NOT NULL,
             id_acheteur INTEGER,
+            statut TEXT NOT NULL,
             FOREIGN KEY (id_acheteur) REFERENCES entrepots_ENTREPOT(id_entrepot),
             FOREIGN KEY (id_acheteur) REFERENCES succursales_SUCCURSALE(id_succursale)
+            FOREIGN KEY (id_acheteur) REFERENCES clients_CLIENT(id_client)
         )""")
 
         cursor.execute("""
@@ -202,7 +204,11 @@ def initialize_db():
         )""")
         
         
-        
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS finances_TAXES (
+            TPS FLOAT NON NULL,
+            TVQ FLOAT NON NULL
+        )""")
         
         
         # Add initial user
@@ -215,6 +221,12 @@ def initialize_db():
         cursor.execute("""
         INSERT OR IGNORE INTO info_LOGIN (id_employe, username, password, visibilite)
         VALUES ((SELECT id_individus FROM info_PERSONNEL WHERE nom='Admin'), 'admin', 'admin', 0)
+        """)
+
+        # Add tax
+        cursor.execute("""
+        INSERT OR IGNORE INTO finances_TAXES (TPS, TVQ)
+        VALUES (0.05, 0.09975)
         """)
         
         conn.commit()
