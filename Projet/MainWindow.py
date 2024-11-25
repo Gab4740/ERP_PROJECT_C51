@@ -5,6 +5,7 @@ import Onglet_Horaire as horraire
 import Onglet_Entrepot as entrepot
 import Onglet_Magasin as magasin
 import Onglet_Employes as employes
+import Onglet_Client as clients
 import Onglet_Usagers as usagers
 import fetch
 
@@ -28,6 +29,7 @@ class MainWindow(QMainWindow):
             horraire.Onglet_horaire("Horaire", "any"),
             magasin.Onglet_magasin("Magasins", "any", parent_widget=self),
             entrepot.Onglet_entrepot("Entrepôts", "any", parent_widget=self),
+            clients.Onglet_Client("Clients", "any", parent_widget=self),
             employes.Onglet_Employes("Employés", "any"),
             usagers.Onglet_usagers("Usagers", "any")
             
