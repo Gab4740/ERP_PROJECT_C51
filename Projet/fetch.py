@@ -78,7 +78,6 @@ def fetch_employe():
     conn.close()
     return result[0] if result else None
 
-<<<<<<< HEAD
 def add_employee_to_db(nas, nom, prenom, date_naissance, email, telephone, adresse=None, id_horaire=None, id_poste=None, id_salaire=None, id_succursale=None):
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()
@@ -110,9 +109,6 @@ def add_employee_to_db(nas, nom, prenom, date_naissance, email, telephone, adres
 #def get_employees_by_succursale(nom_succursale):
 #    conn = sqlite3.connect('erp.db')
 #    cursor = conn.cursor()
-
-=======
->>>>>>> bb6b4980de002bcb7ac1cea5b30b4ec18494b982
 
 def ajouter_horaire(id_employe, id_jour_de_travail, heure_debut, heure_fin):
     conn = sqlite3.connect('erp.db')

@@ -118,7 +118,8 @@ class Onglet_Employes(Onglet):
         main_layout.addLayout(right_layout)
 
         # Set the initial shop and employee list
-        self.on_shop_changed(self.shops[0][2])
+        if self.shops:
+            self.on_shop_changed(self.shops[0][2])
         
         return main_layout
 
