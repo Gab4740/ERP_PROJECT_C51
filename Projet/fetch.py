@@ -281,5 +281,118 @@ def fetch_commande():
 
 
 
+############################
+######## CLIENT ############
+############################
+def fetch_client():
+
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT clients_CLIENT.id_client, clients_CLIENT.type, info_PERSONNEL.*
+        FROM clients_CLIENT
+        INNER JOIN info_PERSONNEL
+        ON clients_CLIENT.id_employe = info_PERSONNEL.id_individus
+    """)
+    
+    result = cursor.fetchall()  # Récupère tous les résultats
+    conn.close()
+    
+    return result
+
+
+def ajouter_client(nas, nom, prenom, datenaissance, email, telephone, adresse, type):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    # Ajouter les informations de l'entité (INFO_CIE)
+    cursor.execute("""
+        INSERT INTO info_PERSONNEL (NAS, nom, prenom, date_naissance, email, telephone, adresse)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (nas, nom, prenom, datenaissance, email, telephone, adresse))
+    
+    # Récupérer l'ID de l'entité insérée
+    id_employe = cursor.lastrowid
+    
+    # Ajouter la succursale associée
+    cursor.execute("""
+        INSERT INTO clients_CLIENT (id_employe, type)
+        VALUES (?, ?)
+    """, (id_employe, type))
+    
+    conn.commit()
+    print(f"Client '{nom}' '{prenom}' ajouté avec succès.")
+
+    conn.close()
+
+
+def supprimer_client(id_client):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    # Trouver l'ID de l'employé associé au client
+    cursor.execute("""
+        SELECT id_employe FROM clients_CLIENT WHERE id_client = ?
+    """, (id_client,))
+    id_employe = cursor.fetchone()
+
+    if not id_employe:
+        raise ValueError(f"Aucun client trouvé avec l'ID '{id_client}'.")
+
+    id_employe = id_employe[0]
+
+    # Supprimer le client de clients_CLIENT
+    cursor.execute("""
+        DELETE FROM clients_CLIENT WHERE id_client = ?
+    """, (id_client,))
+
+    # Supprimer les informations personnelles de info_PERSONNEL
+    cursor.execute("""
+        DELETE FROM info_PERSONNEL WHERE id_individus = ?
+    """, (id_employe,))
+
+    conn.commit()
+    print(f"Client avec ID '{id_client}' supprimé avec succès.")
+    conn.close()
+
+
+def update_client(id_client, nas, nom, prenom, date_naissance, email, telephone, adresse, type_client):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+
+    # Trouver l'ID de l'employé associé au client
+    cursor.execute("""
+        SELECT id_employe FROM clients_CLIENT WHERE id_client = ?
+    """, (id_client,))
+    id_employe = cursor.fetchone()
+
+    if not id_employe:
+        raise ValueError(f"Aucun client trouvé avec l'ID '{id_client}'.")
+
+    id_employe = id_employe[0]
+
+    # Mettre à jour les informations dans info_PERSONNEL
+    cursor.execute("""
+        UPDATE info_PERSONNEL
+        SET NAS = ?, nom = ?, prenom = ?, date_naissance = ?, email = ?, telephone = ?, adresse = ?
+        WHERE id_individus = ?
+    """, (nas, nom, prenom, date_naissance, email, telephone, adresse, id_employe))
+
+    # Mettre à jour le type du client dans clients_CLIENT
+    cursor.execute("""
+        UPDATE clients_CLIENT
+        SET type = ?
+        WHERE id_client = ?
+    """, (type_client, id_client))
+
+    conn.commit()
+    print(f"Client avec ID '{id_client}' mis à jour avec succès.")
+
+    conn.close()
+
+
+
 
 
