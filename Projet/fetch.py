@@ -60,6 +60,9 @@ def fetch_employe():
     conn.close()
     return result[0] if result else None
 
+def ajouter_employe():
+    pass
+
 
 ############################
 ###### SUCCURSALE ##########

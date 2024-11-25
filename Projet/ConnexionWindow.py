@@ -14,7 +14,7 @@ class Connexion(QMainWindow):
     def __init__(self, controleur, screen_info):
         super().__init__()
         self.controleur = controleur
-        self.setWindowTitle("Application ERP")
+        self.setWindowTitle("Connexion ERP")
         self.setGeometry(100, 100, 500, 300)
     
         # Mettre le widget centré dans l'écran
@@ -38,7 +38,7 @@ class Connexion(QMainWindow):
         layout = QVBoxLayout()
         layout.setContentsMargins(50, 20, 50, 40)
 
-        titre = QLabel("Connexion ERP")
+        titre = QLabel("Connexion")
         titre.setAlignment(Qt.AlignCenter)
         titre.setStyleSheet("font-size: 18px; font-weight: bold;")
         layout.addWidget(titre)
@@ -70,7 +70,7 @@ class Connexion(QMainWindow):
         self.stacked_widget.setCurrentWidget(self.frame_connexion)
         
     def basculer_vers_main_window(self):
-        self.frame_main_window.update_user_info(self.entry_username.text(), self.entry_password.text())
+        self.frame_main_window.update_user_info(self.entry_username.text(), self.entry_password.text(), self.entry_username.text())
         self.entry_username.clear()
         self.entry_password.clear()
         self.frame_main_window.show()
@@ -78,10 +78,6 @@ class Connexion(QMainWindow):
         
     def obtenir_identifiants(self):
         return self.entry_username.text(), self.entry_password.text()
-    
-    def closeEvent(self, event):
-        self.controleur.arreter_serveur()
-        event.accept() 
 
 class Controleur:
     def __init__(self, screen_info, app):

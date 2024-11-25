@@ -79,7 +79,6 @@ class MainWindow(QMainWindow):
         self.user_visibility = QLabel()
         self.user_visibility.setStyleSheet("font-size: 24px; color: black; font-weight: bold;")
         self.user_info_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.update_user_info("Invité", None, None)
         
         user_info = QVBoxLayout()
         vbox_container3 = QWidget()

@@ -18,7 +18,12 @@ class Onglet_usagers(Onglet):
         layout.addWidget(self.name_input)
 
         # Job Title
-        self.job_title_input = QLineEdit(self.widget)
+        self.job_title_input = QComboBox()
+        self.job_title_input.addItem('Employé')
+        self.job_title_input.addItem('Superviseur')
+        self.job_title_input.addItem('Gérant')
+        self.job_title_input.addItem('Modérateur')
+        self.job_title_input.addItem('Administrateur')
         self.job_title_input.setPlaceholderText("Poste")
         layout.addWidget(QLabel("Poste:"))
         layout.addWidget(self.job_title_input)
