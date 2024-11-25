@@ -7,6 +7,7 @@ import Onglet_Magasin as magasin
 import Onglet_Employes as employes
 import Onglet_Client as clients
 import Onglet_Usagers as usagers
+import Onglet_Fournisseurs as fournisseurs
 import fetch
 
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog
@@ -31,7 +32,8 @@ class MainWindow(QMainWindow):
             entrepot.Onglet_entrepot("Entrepôts", "any", parent_widget=self),
             clients.Onglet_Client("Clients", "any", parent_widget=self),
             employes.Onglet_Employes("Employés", "any"),
-            usagers.Onglet_usagers("Usagers", "any")
+            usagers.Onglet_usagers("Usagers", "any"),
+            fournisseurs.Onglet_Fournisseurs("Fournisseurs", "any")
             
         ]
         # GESTION ONGLETS ACTIFS
