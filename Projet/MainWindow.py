@@ -10,6 +10,7 @@ import Onglet_Client as clients
 import Onglet_Usagers as usagers
 import Onglet_Commande as commande
 import Onglet_Fournisseurs as fournisseurs
+import Onglet_config as config
 import fetch
 
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog
@@ -37,7 +38,8 @@ class MainWindow(QMainWindow):
             commande.Onglet_Commande("Commandes", 4, parent_widget=self),
             employes.Onglet_Employes("Employés", 0),
             usagers.Onglet_usagers("Usagers", 0),
-            fournisseurs.Onglet_Fournisseurs("Fournisseurs", 4)
+            fournisseurs.Onglet_Fournisseurs("Fournisseurs", 4),
+            config.Onglet_Config("Configurations", "any", parent_widget=self)
         ]
         
         # VISIBILITÉ DICTIONNAIRE
