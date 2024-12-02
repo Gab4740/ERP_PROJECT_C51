@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QListWidget, QTextEdit, QLabel, QLineEdit, QListWidgetItem, QPushButton, QDialog, QFormLayout, QMessageBox, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QListWidget, QTextEdit, QLabel, QLineEdit, QListWidgetItem, QPushButton, QDialog, QFormLayout, QMessageBox, QWidget, QSpinBox, QDoubleSpinBox, QDateEdit
 from Onglet import Onglet
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QDate
 import fetch
 
 class Onglet_Client(Onglet):
@@ -103,7 +103,7 @@ class Onglet_Client(Onglet):
         self.add_button = QPushButton("Ajouter")
         self.add_button.setStyleSheet("""
             QPushButton {
-                background-color: #5a9fff;
+                background-color: #70AD47;
                 color: black;
                 border: 1px solid #ccc;
                 border-radius: 20px;
@@ -111,7 +111,7 @@ class Onglet_Client(Onglet):
                 font-size: 14px;
             }
             QPushButton:hover {
-                background-color: #4a8fd1;
+                background-color: #476D2D;
             }
         """)
         self.add_button.clicked.connect(self.open_add_dialog)
@@ -141,7 +141,7 @@ class Onglet_Client(Onglet):
         self.delete_button = QPushButton("Supprimer")
         self.delete_button.setStyleSheet("""
             QPushButton {
-                background-color: #5a9fff;
+                background-color: #C00000;
                 color: black;
                 border: 1px solid #ccc;
                 border-radius: 20px;
@@ -149,7 +149,7 @@ class Onglet_Client(Onglet):
                 font-size: 14px;
             }
             QPushButton:hover {
-                background-color: #4a8fd1;
+                background-color: #740000;
             }
         """)
         self.delete_button.clicked.connect(self.supprimer_client_selectionne)
@@ -188,8 +188,15 @@ class Onglet_Client(Onglet):
                 f"Email: {client[7]}\n"
                 f"Téléphone: {client[8]}\n"
                 f"Adresse: {client[9]}\n"
-                f"Type: {client[1]}"
+                f"Type: {client[1]}\n"
             )
+            
+            ###### AJOUTER CUSTOM FIELDS ##########################
+            custom_fields = fetch.fetch_custom_field_values("Client", id_client)
+            for field_name, value in custom_fields:
+                details += f"{field_name}: {value}\n"
+            ####################################################
+            
             self.clients_details.setText(details)
             
             
@@ -307,6 +314,28 @@ class AddClientDialog(QDialog):
 
         self.type_input = QLineEdit()
         layout.addRow("Type:", self.type_input)
+        
+        
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        self.dynamic_fields = {}
+        dynamic_fields = fetch.fetch_custom_fields("Client")
+        for field_id, field_name, field_type, is_required in dynamic_fields:
+            if field_type == "TEXT":
+                widget = QLineEdit()
+            elif field_type == "INTEGER":
+                widget = QSpinBox()
+            elif field_type == "FLOAT":
+                widget = QDoubleSpinBox()
+            elif field_type == "DATE":
+                widget = QDateEdit()
+                widget.setCalendarPopup(True)
+            else:
+                continue
+            
+            self.dynamic_fields[field_id] = widget
+            layout.addRow(field_name, widget)
+        ####################################################
+        
 
         self.save_button = QPushButton("Ajouter")
         self.save_button.clicked.connect(self.add_client)
@@ -314,7 +343,7 @@ class AddClientDialog(QDialog):
 
     def add_client(self):
         """Ajoute un nouveau client dans la base de données."""
-        fetch.ajouter_client(
+        client_id = fetch.ajouter_client(
             self.nas_input.text(),
             self.nom_input.text(),
             self.prenom_input.text(),
@@ -324,6 +353,24 @@ class AddClientDialog(QDialog):
             self.adresse_input.text(),
             self.type_input.text()
         )
+        
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        dynamic_field_values = []
+        for field_id, widget in self.dynamic_fields.items():
+            if isinstance(widget, QLineEdit):
+                value = widget.text()
+            elif isinstance(widget, QSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDoubleSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDateEdit):
+                value = widget.date().toString("yyyy-MM-dd")
+            dynamic_field_values.append((field_id, value))
+        
+
+        fetch.save_custom_field_values("Client", client_id, dynamic_field_values)
+        ##############################################################################
+        
         QMessageBox.information(self, "Succès", "Client ajouté avec succès.")
         self.accept()
 
@@ -339,6 +386,7 @@ class ModifyClientDialog(QDialog):
         self.setMinimumSize(400, 300)
 
         self.client_data = client_data  # Données actuelles du client à modifier
+        self.dynamic_fields = {} # AJOUTER CUSTOM FIELDS - créer la liste
 
         layout = QFormLayout(self)
 
@@ -373,6 +421,29 @@ class ModifyClientDialog(QDialog):
         self.type_input = QLineEdit(self)
         self.type_input.setText(client_data['type'])
         layout.addRow("Type:", self.type_input)
+        
+        
+        
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        dynamic_fields = fetch.fetch_custom_fields("Client")
+        dynamic_values = fetch.fetch_custom_field_values("Client", self.client_data['id_client'], as_dict=True)
+        for field_id, field_name, field_type, is_required in dynamic_fields:
+            if field_type == "TEXT":
+                widget = QLineEdit(self)
+                widget.setText(dynamic_values.get(field_id, ""))
+            elif field_type == "INTEGER":
+                widget = QSpinBox(self)
+                widget.setValue(int(dynamic_values.get(field_id, 0)))
+            elif field_type == "FLOAT":
+                widget = QDoubleSpinBox(self)
+                widget.setValue(float(dynamic_values.get(field_id, 0.0)))
+            elif field_type == "DATE":
+                widget = QDateEdit(self)
+                widget.setCalendarPopup(True)
+                widget.setDate(QDate.fromString(dynamic_values.get(field_id, ""), "yyyy-MM-dd"))
+            self.dynamic_fields[field_id] = widget
+            layout.addRow(field_name, widget)
+        ########################################################################################################
 
         # Boutons
         save_button = QPushButton("Enregistrer")
@@ -392,6 +463,23 @@ class ModifyClientDialog(QDialog):
             self.adresse_input.text(),
             self.type_input.text()
         )
+        
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        dynamic_field_values = []
+        for field_id, widget in self.dynamic_fields.items():
+            if isinstance(widget, QLineEdit):
+                value = widget.text()
+            elif isinstance(widget, QSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDoubleSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDateEdit):
+                value = widget.date().toString("yyyy-MM-dd")
+            dynamic_field_values.append((field_id, value))
+
+        fetch.update_custom_field_values("Client", self.client_data['id_client'], dynamic_field_values)
+        ##############################################################################
+        
         QMessageBox.information(self, "Succès", "Modifications enregistrées avec succès.")
         self.accept()  # Fermer la boîte de dialogue
 
