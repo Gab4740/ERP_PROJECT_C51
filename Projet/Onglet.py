@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from PySide6.QtWidgets import QWidget
 
 class Onglet(ABC):
-    def __init__(self, name, visibility):
+    def __init__(self, name:str, visibility:int):
         self.name = name
         self.visibility = visibility
         self.last_view = datetime.now()

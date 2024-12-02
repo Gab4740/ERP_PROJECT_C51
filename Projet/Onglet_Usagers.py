@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QDateEdit, QGroupBox, QMessageBox, QWidget, QFormLayout
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QDateEdit, QGroupBox, QMessageBox, QCheckBox, QFormLayout
 from Onglet import Onglet
 import fetch
 import re
@@ -56,11 +56,11 @@ class Onglet_usagers(Onglet):
         job_info_group = QGroupBox("Informations sur l'emploi")
         job_layout = QFormLayout()
         self.job_title_input = QComboBox()
-        self.job_title_input.addItem('Employé')
-        self.job_title_input.addItem('Superviseur')
-        self.job_title_input.addItem('Gérant')
-        self.job_title_input.addItem('Modérateur')
-        self.job_title_input.addItem('Administrateur')
+        self.job_title_input.addItem('Employé', userData=1)
+        self.job_title_input.addItem('Superviseur', userData=2)
+        self.job_title_input.addItem('Gérant', userData=3)
+        self.job_title_input.addItem('Modérateur', userData=4)
+        self.job_title_input.addItem('Administrateur', userData=5)
         job_layout.addRow(QLabel("Poste :"), self.job_title_input)
 
         self.succursale_associe = QComboBox()
@@ -73,9 +73,13 @@ class Onglet_usagers(Onglet):
         self.salary_input.setPlaceholderText("Salaire")
         job_layout.addRow(QLabel("Salaire :"), self.salary_input)
 
+        self.profil_connexion = QCheckBox()
+        self.profil_connexion.setChecked(True)  
+        job_layout.addRow(QLabel("Creer un profil de connexion ?"), self.profil_connexion)
+        
         job_info_group.setLayout(job_layout)
         layout.addWidget(job_info_group)
-
+        
         # Ajouter un bouton pour soumettre
         self.submit_button = QPushButton("Ajouter l'employé")
         layout.addWidget(self.submit_button)
@@ -219,6 +223,7 @@ class Onglet_usagers(Onglet):
         date_naisscance = self.birthday_input.text()
         adresse = self.adress_input.text()
         job_title = self.job_title_input.currentText()
+        visibilite = self.job_title_input.currentData()
         succursale = self.succursale_associe.currentText()
         email = self.email_input.text().strip()
         phone = self.phone_input.text().strip()
@@ -243,6 +248,9 @@ class Onglet_usagers(Onglet):
                 None,
                 succursale_id
             )
+            
+            if self.profil_connexion.isChecked():
+                fetch.insert_login_for_existing_employee(nas, visibilite, email)
 
     def on_reset_clicked(self):
         self.reset_form()

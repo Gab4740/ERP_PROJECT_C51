@@ -152,6 +152,68 @@ def add_employee_to_db(nas, nom, prenom, date_naissance, email, telephone, adres
         print(f"Une erreur s'est produite : {e}")
     finally:
         conn.close()
+
+def delete_employee(employee_id):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            DELETE FROM rh_EMPLOYE WHERE id_employe = ?
+        """, (employee_id,))
+
+        cursor.execute("""
+            DELETE FROM rh_HORAIRE WHERE id_horaire = (SELECT id_horaire FROM rh_EMPLOYE WHERE id_employe = ?)
+        """, (employee_id,))
+
+        cursor.execute("""
+            DELETE FROM rh_POSTE WHERE id_poste = (SELECT id_poste FROM rh_EMPLOYE WHERE id_employe = ?)
+        """, (employee_id,))
+
+        cursor.execute("""
+            DELETE FROM rh_SALAIRE WHERE id_salaire = (SELECT id_salaire FROM rh_EMPLOYE WHERE id_employe = ?)
+        """, (employee_id,))
+
+        cursor.execute("""
+            DELETE FROM succursales_SUCCURSALE WHERE id_succursale = (SELECT id_succursale FROM rh_EMPLOYE WHERE id_employe = ?)
+        """, (employee_id,))
+
+        cursor.execute("""
+            DELETE FROM info_PERSONNEL WHERE id_individus = ?
+        """, (employee_id,))
+
+        conn.commit()
+
+        print(f"Employee with ID {employee_id} has been deleted successfully.")
+    
+    finally:
+        # Close the connection
+        conn.close()
+        
+def insert_login_for_existing_employee(nas, visibilite, username, password = 12345):
+    ''' USERNAME = EMAIL, PASSWORD = LEAVE AT DEFAULT VALUE'''
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT id_individus FROM info_PERSONNEL WHERE NAS = ?", (nas,))
+        employee = cursor.fetchone()
+
+        if employee:
+            employee_id = employee[0]
+
+            cursor.execute("""
+                INSERT INTO info_LOGIN (id_employe, username, password, visibilite)
+                VALUES (?, ?, ?, ?)
+            """, (employee_id, username, password, visibilite))
+            
+            conn.commit()
+            print(f"Login information for employee ID {employee_id} has been added successfully.")
+        else:
+            print("Employee not found with the provided NAS.")
+
+    finally:
+        conn.close()
         
 def get_shop_id_by_name(shop_name):
     conn = sqlite3.connect('erp.db')
@@ -181,16 +243,6 @@ def get_employees_by_shop_id(shop_id):
     employees = cursor.fetchall()
     
     return employees
-
-def get_employee_info(employee_id):
-    conn = sqlite3.connect('erp.db')
-    cursor = conn.cursor()
-    
-    query = "SELECT * FROM info_PERSONNEL WHERE id_individus = ?"
-    cursor.execute(query, (employee_id,))
-    employee_info = cursor.fetchone()
-    
-    return employee_info
 
 def get_employee_info_by_name(first_name, last_name):
     conn = sqlite3.connect('erp.db')

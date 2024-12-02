@@ -38,8 +38,18 @@ class MainWindow(QMainWindow):
             employes.Onglet_Employes("Employés", "any"),
             usagers.Onglet_usagers("Usagers", "any"),
             fournisseurs.Onglet_Fournisseurs("Fournisseurs", "any")
-            
         ]
+        
+        # VISIBILITÉ DICTIONNAIRE
+        self.visi = {
+            0 : "Invité",
+            1 : "Employé",
+            2 : "Superviseur",
+            3 : "Gérant",
+            4 : "Modérateur",
+            5 : "Administrateur"
+        }
+        
         # GESTION ONGLETS ACTIFS
         self.tab_widget = QTabWidget()
         self.tab_widget.currentChanged.connect(self.update_last_index)
@@ -192,7 +202,7 @@ class MainWindow(QMainWindow):
         role = fetch.fetch_visibilite(username, password)
         self.current_user_role = role
         self.user_info_label.setText(f"Utilisateur : {username}" if role is not None else "Utilisateur : Invité")
-        self.user_visibility.setText(f"Visibilité : {role}" if role is not None else "Visibilité : Invité")
+        self.user_visibility.setText(f"Visibilité : {self.visi[role]}" if role is not None else "Visibilité : Invité")
         self.tab_widget.clear()  # Vider les onglets existants
         self.create_tabs()  # Recréer les onglets en fonction du rôle
 

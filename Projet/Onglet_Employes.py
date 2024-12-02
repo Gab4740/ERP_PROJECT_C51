@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QComboBox, QListWidget, QTextEdit, QLabel, QLineEdit, QPushButton, QDialog, QFormLayout, QListWidgetItem
+from PySide6.QtWidgets import QMessageBox, QVBoxLayout, QHBoxLayout, QComboBox, QListWidget, QTextEdit, QLabel, QLineEdit, QPushButton, QDialog, QFormLayout, QListWidgetItem
 from Onglet import Onglet
 import sqlite3
 import fetch
@@ -107,11 +107,12 @@ class Onglet_Employes(Onglet):
         self.modify_button.setStyleSheet("""
             QPushButton {
                 background-color: #5a9fff;
-                color: black;
+                color: white;
                 border: 1px solid #ccc;
                 border-radius: 20px;
                 padding: 10px 20px;
                 font-size: 14px;
+                font-weight:bold;
             }
             QPushButton:hover {
                 background-color: #4a8fd1;
@@ -119,6 +120,24 @@ class Onglet_Employes(Onglet):
         """)
         self.modify_button.clicked.connect(self.open_modify_dialog)
         right_layout.addWidget(self.modify_button)
+        
+        self.supprimer_emp = QPushButton("Supprimer l'employe")
+        self.supprimer_emp.setStyleSheet("""
+            QPushButton {
+                background-color: #D22B2B;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight:bold;
+            }
+            QPushButton:hover {
+                background-color: #A52A2A;
+            }
+        """)
+        self.supprimer_emp.clicked.connect(self.supprimer_employer)
+        right_layout.addWidget(self.supprimer_emp)
 
         main_layout.addLayout(right_layout)
 
@@ -128,6 +147,16 @@ class Onglet_Employes(Onglet):
             self.on_shop_changed(self.shops[0][2])
         
         return main_layout
+    
+    def supprimer_employer(self):
+        if self.selected_employee:
+            reply = QMessageBox.question(self.widget, 'Confirmation', 
+                                     "Are you sure you want to delete this employee?", 
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, 
+                                     QMessageBox.StandardButton.No)
+
+        if reply == QMessageBox.Yes:
+            fetch.delete_employee(self.selected_employee[0])
 
     def refresh_page(self):
         self.shop_combo.clear()
@@ -153,7 +182,7 @@ class Onglet_Employes(Onglet):
         self.employee_list.clear()
         # Add employee names to the list widget
         for emp in employees:
-            emp_info = fetch.get_employee_info(emp[0])
+            emp_info = fetch.get_employee_info_by_id(emp[0])
             item = QListWidgetItem(str(emp_info[2] + " " +  emp_info[3]))
             item.setData(1, emp[0])
             self.employee_list.addItem(item)
