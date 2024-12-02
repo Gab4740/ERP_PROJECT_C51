@@ -211,6 +211,28 @@ def initialize_db():
             TPS FLOAT NON NULL,
             TVQ FLOAT NON NULL
         )""")
+
+
+
+        # custom fields
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS custom_fields (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            entity_type TEXT NOT NULL, 
+            field_name TEXT NOT NULL,
+            field_type TEXT NOT NULL,
+            is_required BOOLEAN DEFAULT 0
+        )""")
+        
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS custom_field_values (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            entity_id INTEGER NOT NULL,  -- ID de l'entité principale (commande, client, etc.)
+            entity_type TEXT NOT NULL,   -- Type d'entité pour différencier les tables (par ex., "Commande")
+            field_id INTEGER NOT NULL,   -- Référence au champ défini dans `custom_fields`
+            value TEXT,                  -- Valeur (encodée si nécessaire)
+            FOREIGN KEY (field_id) REFERENCES custom_fields(id)
+        )""")
         
         
         # Add initial user
