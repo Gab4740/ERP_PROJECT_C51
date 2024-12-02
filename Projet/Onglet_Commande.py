@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QListWidget, QLabel, QTextEdit, QPushButton, 
-    QDialog, QFormLayout, QLineEdit, QMessageBox, QListWidgetItem, QWidget, QButtonGroup, QRadioButton, QComboBox
+    QDialog, QFormLayout, QLineEdit, QMessageBox, QListWidgetItem, QWidget, QButtonGroup, QRadioButton, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QDate
 from Onglet import Onglet
 import fetch
 
@@ -117,8 +117,18 @@ class Onglet_Commande(Onglet):
                 f"Coût avant taxe: {commande[2]} €\n"
                 f"Coût après taxe: {commande[3]} €\n"
                 f"Acheteur: {acheteur_nom}\n"
-                f"Statut: {commande[5]}"
+                f"Statut: {commande[5]}\n" # AJOUTER CUSTOM FIELDS - sauter de ligne
             )
+            
+            
+            ###### AJOUTER CUSTOM FIELDS ##########################
+            custom_fields = fetch.fetch_custom_field_values("Commande", id_commande)
+            for field_name, value in custom_fields:
+                details += f"{field_name}: {value}\n"
+            ####################################################
+            
+            
+
             self.commandes_details.setText(details)
 
     def open_add_dialog(self):
@@ -193,8 +203,34 @@ class AddCommandeDialog(QDialog):
         layout.addRow("Acheteur:", self.acheteur_combo)
 
         # Statut
-        self.statut_input = QLineEdit()
+        self.statut_input = QComboBox(self)
+        self.statut_input.addItems([
+            "Créée", "Validée", "En traitement", "Expédiée", "Livrée", "Annulée", "Retournée", "Remboursée"
+        ])
         layout.addRow("Statut:", self.statut_input)
+        
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        self.dynamic_fields = {}
+        dynamic_fields = fetch.fetch_custom_fields("Commande")
+        for field_id, field_name, field_type, is_required in dynamic_fields:
+            if field_type == "TEXT":
+                widget = QLineEdit()
+            elif field_type == "INTEGER":
+                widget = QSpinBox()
+            elif field_type == "FLOAT":
+                widget = QDoubleSpinBox()
+            elif field_type == "DATE":
+                widget = QDateEdit()
+                widget.setCalendarPopup(True)
+            else:
+                continue
+            
+            self.dynamic_fields[field_id] = widget
+            layout.addRow(field_name, widget)
+        ####################################################
+
+
+
 
         self.save_button = QPushButton("Ajouter")
         self.save_button.clicked.connect(self.add_commande)
@@ -228,16 +264,32 @@ class AddCommandeDialog(QDialog):
             self.acheteur_combo.addItem(acheteur['nom'], acheteur['id'])
 
 
-
-
     def add_commande(self):
-        fetch.ajouter_commande(
+        commande_id = fetch.ajouter_commande( # AJOUTER CUSTOM FIELDS - création de la variable commande_id
             self.date_input.text(),
             float(self.cout_avant_input.text()),
             float(self.cout_apres_label.text()),
             self.acheteur_combo.currentData(),
-            self.statut_input.text()
+            self.statut_input.currentText()
         )
+
+        
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        dynamic_field_values = []
+        for field_id, widget in self.dynamic_fields.items():
+            if isinstance(widget, QLineEdit):
+                value = widget.text()
+            elif isinstance(widget, QSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDoubleSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDateEdit):
+                value = widget.date().toString("yyyy-MM-dd")
+            dynamic_field_values.append((field_id, value))
+
+        fetch.save_custom_field_values("Commande", commande_id, dynamic_field_values)
+        ##############################################################################
+        
         QMessageBox.information(self, "Succès", "Commande ajoutée avec succès.")
         self.accept()
 
@@ -255,6 +307,7 @@ class ModifyCommandeDialog(QDialog):
         self.setMinimumSize(400, 300)
 
         self.commande_data = commande_data  
+        self.dynamic_fields = {} # AJOUTER CUSTOM FIELDS - créer la liste
 
         layout = QFormLayout(self)
 
@@ -279,9 +332,33 @@ class ModifyCommandeDialog(QDialog):
 
 
         # Champ statut
-        self.statut_input = QLineEdit(self)
-        self.statut_input.setText(commande_data[5])  # Index 5 pour `statut`
+        self.statut_input = QComboBox(self)
+        self.statut_input.addItems([
+            "Créée", "Validée", "En traitement", "Expédiée", "Livrée", "Annulée", "Retournée", "Remboursée"
+        ])
+        self.statut_input.setCurrentText(commande_data[5])
         layout.addRow("Statut:", self.statut_input)
+        
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        dynamic_fields = fetch.fetch_custom_fields("Commande")
+        dynamic_values = fetch.fetch_custom_field_values("Commande", commande_data[0], as_dict=True)
+        for field_id, field_name, field_type, is_required in dynamic_fields:
+            if field_type == "TEXT":
+                widget = QLineEdit(self)
+                widget.setText(dynamic_values.get(field_id, ""))
+            elif field_type == "INTEGER":
+                widget = QSpinBox(self)
+                widget.setValue(int(dynamic_values.get(field_id, 0)))
+            elif field_type == "FLOAT":
+                widget = QDoubleSpinBox(self)
+                widget.setValue(float(dynamic_values.get(field_id, 0.0)))
+            elif field_type == "DATE":
+                widget = QDateEdit(self)
+                widget.setCalendarPopup(True)
+                widget.setDate(QDate.fromString(dynamic_values.get(field_id, ""), "yyyy-MM-dd"))
+            self.dynamic_fields[field_id] = widget
+            layout.addRow(field_name, widget)
+        ########################################################################################################
 
 
         # Boutons
@@ -304,7 +381,26 @@ class ModifyCommandeDialog(QDialog):
             self.commande_data[0],  # Index 0 pour `id_commande`
             self.date_input.text(),
             float(self.cout_avant_input.text()),
-            self.statut_input.text()
+            float(self.cout_apres_label.text()),
+            self.statut_input.currentText()
         )
+        
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        dynamic_field_values = []
+        for field_id, widget in self.dynamic_fields.items():
+            if isinstance(widget, QLineEdit):
+                value = widget.text()
+            elif isinstance(widget, QSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDoubleSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDateEdit):
+                value = widget.date().toString("yyyy-MM-dd")
+            dynamic_field_values.append((field_id, value))
+
+        fetch.update_custom_field_values("Commande", self.commande_data[0], dynamic_field_values)
+        ##############################################################################
+        
+        
         QMessageBox.information(self, "Succès", "Modifications enregistrées avec succès.")
         self.accept()  # Fermer la boîte de dialogue
