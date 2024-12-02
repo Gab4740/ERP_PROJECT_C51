@@ -273,19 +273,19 @@ def get_employee_info_by_id(employee_id):
     conn.close()
     return employee_info
 
-def update_employee_info(employee_id, new_prenom, new_nom, new_email, new_telephone, new_adresse):
+def update_employee_info(employee_id, new_prenom, new_nom, new_telephone, new_adresse):
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()
 
     try:
         query = """
             UPDATE info_PERSONNEL
-            SET prenom = ?, nom = ?, email = ?, telephone = ?, adresse = ?
+            SET prenom = ?, nom = ?, telephone = ?, adresse = ?
             WHERE id_individus = ?
         """
 
         # Execute the query with the new values and employee_id
-        cursor.execute(query, (new_prenom, new_nom, new_email, new_telephone, new_adresse, employee_id))
+        cursor.execute(query, (new_prenom, new_nom, new_telephone, new_adresse, employee_id))
 
         # Commit the transaction
         conn.commit()

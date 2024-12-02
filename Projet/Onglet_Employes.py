@@ -244,10 +244,6 @@ class ModifyEmployeeDialog(QDialog):
         self.nom_edit.setText(self.employee_data[3])
         layout.addRow("Nom:", self.nom_edit)
 
-        self.email_edit = QLineEdit(self)
-        self.email_edit.setText(self.employee_data[5])
-        layout.addRow("Email:", self.email_edit)
-
         self.telephone_edit = QLineEdit(self)
         self.telephone_edit.setText(self.employee_data[6])
         layout.addRow("Telephone:", self.telephone_edit)
@@ -264,9 +260,8 @@ class ModifyEmployeeDialog(QDialog):
     def save_changes(self):
         self.prenom_edit.text()
         self.nom_edit.text()
-        self.email_edit.text()
         self.telephone_edit.text()
         self.adresse_edit.text()
         
-        fetch.update_employee_info(self.employee_ID, self.prenom_edit.text(), self.nom_edit.text(), self.email_edit.text(), self.telephone_edit.text(), self.adresse_edit.text())
+        fetch.update_employee_info(self.employee_ID, self.prenom_edit.text(), self.nom_edit.text(), self.telephone_edit.text(), self.adresse_edit.text())
         self.accept()

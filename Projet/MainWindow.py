@@ -25,19 +25,19 @@ class MainWindow(QMainWindow):
         self.percent = 0.85                                                         #Pourcentage de l'ecran pris par l'app au lancement
         self.setWindowTitle("Logiciel ERP")                                         #Titre de la topBar
         self.resize(m.floor(width * self.percent), m.floor(height * self.percent))  #Rezize de la fenetre
-        self.current_user_role = None                                               #Current Visibility
+        self.current_user_role = 0                                                  #Current Visibility
         
         # ONGLETS EXISTANT
         self.onglets_existants = [
-            horaire.Onglet_horaire("Modification Horaire", "any"),
-            horaireEmp.Onglet_horaire("Horaire", "any"),
-            magasin.Onglet_magasin("Magasins", "any", parent_widget=self),
-            entrepot.Onglet_entrepot("Entrepôts", "any", parent_widget=self),
-            clients.Onglet_Client("Clients", "any", parent_widget=self),
-            commande.Onglet_Commande("Commandes", "any", parent_widget=self),
-            employes.Onglet_Employes("Employés", "any"),
-            usagers.Onglet_usagers("Usagers", "any"),
-            fournisseurs.Onglet_Fournisseurs("Fournisseurs", "any")
+            horaire.Onglet_horaire("Modification Horaire", 3),
+            horaireEmp.Onglet_horaire("Horaire", 0),
+            magasin.Onglet_magasin("Magasins", 0, parent_widget=self),
+            entrepot.Onglet_entrepot("Entrepôts", 3, parent_widget=self),
+            clients.Onglet_Client("Clients", 3, parent_widget=self),
+            commande.Onglet_Commande("Commandes", 4, parent_widget=self),
+            employes.Onglet_Employes("Employés", 0),
+            usagers.Onglet_usagers("Usagers", 0),
+            fournisseurs.Onglet_Fournisseurs("Fournisseurs", 4)
         ]
         
         # VISIBILITÉ DICTIONNAIRE
@@ -161,22 +161,12 @@ class MainWindow(QMainWindow):
 
     def create_tabs(self):
         for onglet in self.onglets_existants:
-            if self.user_role_can_access(onglet.get_visibility()) or onglet.get_visibility() == "any":
+            if onglet.get_visibility() <= self.current_user_role or onglet.get_visibility() == 0:
                 self.add_tab(onglet.name, onglet.get_widget())
 
     def add_tab(self, name, ongle_widget):
         self.tab_widget.addTab(ongle_widget, name)
         self.tab_widget.setTabText(self.tab_widget.indexOf(ongle_widget), name)
-
-    # A MODIFIER
-    def user_role_can_access(self, role):
-        if self.current_user_role == "Boss":
-            return True
-        elif self.current_user_role == "Admin":
-            return role in ["Admin", "Employé"]
-        elif self.current_user_role == "Employé":
-            return role == "Employé"
-        return False
 
     # ON PEUX LE GARDER
     def update_last_index(self, index):
