@@ -1,4 +1,6 @@
 import sqlite3
+import csv
+import requests
 
 ############################
 ######## VISIBILITÉ ########
@@ -650,9 +652,9 @@ def fetch_taxes():
 
 
 
-############################
-######## CLIENT ############
-############################
+##########################
+######## CLIENT ##########
+##########################
 def fetch_client():
 
     conn = sqlite3.connect('erp.db')
@@ -762,6 +764,56 @@ def update_client(id_client, nas, nom, prenom, date_naissance, email, telephone,
     conn.close()
 
 
-
-
-
+################################
+######### GESTUON $$$ ##########
+################################
+def fetch_paiements_from_csv(filename="paiements.csv"):
+    """
+    Charge les paiements depuis un fichier CSV et les ajoute à la base de données.
+    """
+    global paiements  # Référence à la base de données existante
+    
+    try:
+        with open(filename, mode='r', newline='') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                paiement = {
+                    'date': row['Date'],
+                    'salaire_brut': float(row['Salaire brut']),
+                    'impots': float(row['Impôts']),
+                    'taxes': float(row['Taxes']),
+                    'salaire_net': float(row['Salaire net'])
+                }
+                paiements.append(paiement)
+        print(f"Les paiements ont été chargés depuis le fichier {filename}.")
+    except FileNotFoundError:
+        print(f"Le fichier {filename} n'a pas été trouvé.")
+    except Exception as e:
+        print(f"Une erreur s'est produite lors du chargement des paiements depuis le fichier : {e}")
+        
+def fetch_paiements_from_api(api_url="https://api.example.com/paiements"):
+    """
+    Récupère les paiements depuis une API et les ajoute à la base de données.
+    """
+    global paiements  # Référence à la base de données existante
+    
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()  # Si la requête échoue, une exception sera levée
+        
+        paiements_api = response.json()  # Supposons que l'API renvoie des données JSON
+        
+        for paiement_data in paiements_api:
+            paiement = {
+                'date': paiement_data['date'],  # Assurez-vous que les clés correspondent à la structure de l'API
+                'salaire_brut': float(paiement_data['salaire_brut']),
+                'impots': float(paiement_data['impots']),
+                'taxes': float(paiement_data['taxes']),
+                'salaire_net': float(paiement_data['salaire_net'])
+            }
+            paiements.append(paiement)
+        print("Les paiements ont été récupérés depuis l'API.")
+    except requests.exceptions.RequestException as e:
+        print(f"Une erreur s'est produite lors de la récupération des paiements depuis l'API : {e}")
+    except Exception as e:
+        print(f"Une erreur s'est produite : {e}")
