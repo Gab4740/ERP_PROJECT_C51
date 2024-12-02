@@ -377,26 +377,30 @@ def get_succursale_id_by_name(nom):
 def ajouter_succursale(nom, adresse, telephone, email, type_cie):
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()
-
-    # Ajouter les informations de l'entité (INFO_CIE)
-    cursor.execute("""
-        INSERT INTO info_CIE (nom, adresse, telephone, email, type)
-        VALUES (?, ?, ?, ?, ?)
-    """, (nom, adresse, telephone, email, type_cie))
-    
-    # Récupérer l'ID de l'entité insérée
-    id_entite = cursor.lastrowid
-    
-    # Ajouter la succursale associée
-    cursor.execute("""
-        INSERT INTO succursales_SUCCURSALE (id_info)
-        VALUES (?)
-    """, (id_entite,))
-    
-    conn.commit()
-    print(f"Succursale '{nom}' ajoutée avec succès.")
-
-    conn.close()
+    try:
+        # Ajouter les informations de l'entité (INFO_CIE)
+        cursor.execute("""
+            INSERT INTO info_CIE (nom, adresse, telephone, email, type)
+            VALUES (?, ?, ?, ?, ?)
+        """, (nom, adresse, telephone, email, type_cie))
+        
+        # Récupérer l'ID de l'entité insérée
+        id_entite = cursor.lastrowid
+        
+        # Ajouter la succursale associée
+        cursor.execute("""
+            INSERT INTO succursales_SUCCURSALE (id_info)
+            VALUES (?)
+        """, (id_entite,))
+        
+        conn.commit()
+        print(f"Succursale '{nom}' ajoutée avec succès.")
+        return cursor.lastrowid
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 
 def supprimer_succursale(nom_succursale):
@@ -454,26 +458,30 @@ def fetch_entrepot():
 def ajouter_entrepot(nom, adresse, telephone, email, type_cie):
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()
-
-    # Ajouter les informations de l'entité (INFO_CIE)
-    cursor.execute("""
-        INSERT INTO info_CIE (nom, adresse, telephone, email, type)
-        VALUES (?, ?, ?, ?, ?)
-    """, (nom, adresse, telephone, email, type_cie))
-    
-    # Récupérer l'ID de l'entité insérée
-    id_entite = cursor.lastrowid
-    
-    # Ajouter l'entrepot associé
-    cursor.execute("""
-        INSERT INTO entrepots_ENTREPOT (id_info)
-        VALUES (?)
-    """, (id_entite,))
-    
-    conn.commit()
-    print(f"Entrepôt '{nom}' ajouté avec succès.")
-
-    conn.close()
+    try:
+        # Ajouter les informations de l'entité (INFO_CIE)
+        cursor.execute("""
+            INSERT INTO info_CIE (nom, adresse, telephone, email, type)
+            VALUES (?, ?, ?, ?, ?)
+        """, (nom, adresse, telephone, email, type_cie))
+        
+        # Récupérer l'ID de l'entité insérée
+        id_entite = cursor.lastrowid
+        
+        # Ajouter l'entrepot associé
+        cursor.execute("""
+            INSERT INTO entrepots_ENTREPOT (id_info)
+            VALUES (?)
+        """, (id_entite,))
+        
+        conn.commit()
+        print(f"Entrepôt '{nom}' ajouté avec succès.")
+        return cursor.lastrowid
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 
 
@@ -526,12 +534,18 @@ def fetch_commandes():
 def ajouter_commande(date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut):
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO finances_COMMANDES (date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut)
-        VALUES (?, ?, ?, ?, ?)
-    """, (date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut))
-    conn.commit()
-    conn.close()
+    try:
+        cursor.execute("""
+            INSERT INTO finances_COMMANDES (date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut)
+            VALUES (?, ?, ?, ?, ?)
+        """, (date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut))
+        conn.commit()
+        return cursor.lastrowid
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 
 def modifier_commande(id_commande, cout_apres_taxe, cout_avant_taxe, statut):
@@ -677,25 +691,30 @@ def ajouter_client(nas, nom, prenom, datenaissance, email, telephone, adresse, t
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()
 
-    # Ajouter les informations de l'entité (INFO_CIE)
-    cursor.execute("""
-        INSERT INTO info_PERSONNEL (NAS, nom, prenom, date_naissance, email, telephone, adresse)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (nas, nom, prenom, datenaissance, email, telephone, adresse))
-    
-    # Récupérer l'ID de l'entité insérée
-    id_employe = cursor.lastrowid
-    
-    # Ajouter la succursale associée
-    cursor.execute("""
-        INSERT INTO clients_CLIENT (id_employe, type)
-        VALUES (?, ?)
-    """, (id_employe, type))
-    
-    conn.commit()
-    print(f"Client '{nom}' '{prenom}' ajouté avec succès.")
-
-    conn.close()
+    try:
+        # Ajouter les informations de l'entité (INFO_CIE)
+        cursor.execute("""
+            INSERT INTO info_PERSONNEL (NAS, nom, prenom, date_naissance, email, telephone, adresse)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (nas, nom, prenom, datenaissance, email, telephone, adresse))
+        
+        # Récupérer l'ID de l'entité insérée
+        id_employe = cursor.lastrowid
+        
+        # Ajouter la succursale associée
+        cursor.execute("""
+            INSERT INTO clients_CLIENT (id_employe, type)
+            VALUES (?, ?)
+        """, (id_employe, type))
+        
+        conn.commit()
+        print(f"Client '{nom}' '{prenom}' ajouté avec succès.")
+        return cursor.lastrowid
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 
 def supprimer_client(id_client):
@@ -817,3 +836,151 @@ def fetch_paiements_from_api(api_url="https://api.example.com/paiements"):
         print(f"Une erreur s'est produite lors de la récupération des paiements depuis l'API : {e}")
     except Exception as e:
         print(f"Une erreur s'est produite : {e}")
+
+
+############################
+##### CUSTOM FIELD #########
+############################
+def add_custom_field(entity_type, field_name, field_type, is_required):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO custom_fields (entity_type, field_name, field_type, is_required)
+            VALUES (?, ?, ?, ?)
+        """, (entity_type, field_name, field_type, is_required))
+        conn.commit()
+    except sqlite3.OperationalError as e:
+        print(f"Erreur SQL : {e}")
+    finally:
+        conn.close()
+    
+    
+def fetch_custom_fields(entity_type=None):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    if entity_type:
+        cursor.execute("""
+            SELECT id, field_name, field_type, is_required
+            FROM custom_fields
+            WHERE entity_type = ?
+        """, (entity_type,))
+    else:
+        cursor.execute("""
+            SELECT id, field_name, field_type, is_required
+            FROM custom_fields
+        """)
+    fields = cursor.fetchall()
+    conn.close()
+    return fields
+
+
+def save_custom_field_values(entity_type, entity_id, field_values):
+    """
+    Enregistre les valeurs des champs dynamiques pour une entité donnée.
+    :param entity_type: Type de l'entité (par ex., "Commande").
+    :param entity_id: ID de l'entité principale (commande, client, etc.).
+    :param field_values: Liste de tuples (field_id, valeur).
+    """
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    for field_id, value in field_values:
+        cursor.execute("""
+            INSERT INTO custom_field_values (entity_type, entity_id, field_id, value)
+            VALUES (?, ?, ?, ?)
+        """, (entity_type, entity_id, field_id, value))
+    conn.commit()
+    conn.close()
+
+
+
+
+def fetch_custom_field_values(entity_type, entity_id, as_dict=False):
+    """
+    Récupère les valeurs des champs dynamiques pour une entité donnée.
+    :param entity_type: Type de l'entité (par ex., "Commande").
+    :param entity_id: ID de l'entité principale (commande, client, etc.).
+    :param as_dict: Si True, retourne un dictionnaire {field_id: valeur}.
+                    Si False, retourne une liste de tuples [(field_name, valeur)].
+    :return: Un dictionnaire ou une liste en fonction de `as_dict`.
+    """
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT cf.field_name, cf.id, cfv.value
+        FROM custom_field_values cfv
+        INNER JOIN custom_fields cf ON cf.id = cfv.field_id
+        WHERE cfv.entity_type = ? AND cfv.entity_id = ?
+    """, (entity_type, entity_id))
+    results = cursor.fetchall()
+    conn.close()
+
+    if as_dict:
+        # Retourne un dictionnaire {field_id: valeur}
+        return {field_id: value for _, field_id, value in results}
+    else:
+        # Retourne une liste de tuples [(field_name, valeur)]
+        return [(field_name, value) for field_name, _, value in results]
+
+
+
+
+def update_custom_field_values(entity_type, entity_id, field_values):
+    """
+    Met à jour ou insère les valeurs des champs dynamiques pour une entité donnée.
+    :param entity_type: Type de l'entité (par ex., "Commande").
+    :param entity_id: ID de l'entité principale (commande, client, etc.).
+    :param field_values: Liste de tuples (field_id, valeur).
+    """
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    for field_id, value in field_values:
+        # Vérifier si une valeur existe déjà pour ce champ
+        cursor.execute("""
+            SELECT id FROM custom_field_values
+            WHERE entity_type = ? AND entity_id = ? AND field_id = ?
+        """, (entity_type, entity_id, field_id))
+        existing = cursor.fetchone()
+
+        if existing:
+            # Mettre à jour si une valeur existe déjà
+            cursor.execute("""
+                UPDATE custom_field_values
+                SET value = ?
+                WHERE entity_type = ? AND entity_id = ? AND field_id = ?
+            """, (value, entity_type, entity_id, field_id))
+        else:
+            # Insérer une nouvelle valeur si elle n'existe pas
+            cursor.execute("""
+                INSERT INTO custom_field_values (entity_type, entity_id, field_id, value)
+                VALUES (?, ?, ?, ?)
+            """, (entity_type, entity_id, field_id, value))
+
+    conn.commit()
+    conn.close()
+
+
+def delete_custom_field(field_id):
+    """
+    Supprime un champ personnalisé et ses valeurs associées.
+    :param field_id: ID du champ personnalisé à supprimer.
+    """
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    # Supprimer les valeurs associées au champ
+    cursor.execute("""
+        DELETE FROM custom_field_values
+        WHERE field_id = ?
+    """, (field_id,))
+
+    # Supprimer le champ personnalisé lui-même
+    cursor.execute("""
+        DELETE FROM custom_fields
+        WHERE id = ?
+    """, (field_id,))
+
+    conn.commit()
+
+    conn.close()
