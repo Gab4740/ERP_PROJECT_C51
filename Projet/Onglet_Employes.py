@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QListWidget, QTextEdit, QLabel, QLineEdit, QListWidgetItem, QPushButton, QDialog, QFormLayout
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QComboBox, QListWidget, QTextEdit, QLabel, QLineEdit, QPushButton, QDialog, QFormLayout, QListWidgetItem
 from Onglet import Onglet
 import sqlite3
 import fetch
@@ -6,11 +6,12 @@ import fetch
 class Onglet_Employes(Onglet):
     def __init__(self, name, visibility):
         super().__init__(name, visibility)
+        
+        self.selected_employee = None
 
     def create_content(self):
         self.shops = fetch.fetch_succursale()    
-        print(self.shops)
-
+        
         # Initialize the UI
         self.widget.setLayout(self.init_ui())
 
@@ -27,6 +28,10 @@ class Onglet_Employes(Onglet):
             self.shop_combo.addItem(s[2])
         self.shop_combo.currentTextChanged.connect(self.on_shop_changed)
         left_layout.addWidget(self.shop_combo)
+        
+        self.refresh_button = QPushButton("refresh")
+        self.refresh_button.clicked.connect(self.refresh_page)
+        left_layout.addWidget(self.refresh_button)
 
         # List widget for employees
         self.employee_list = QListWidget()
@@ -58,7 +63,7 @@ class Onglet_Employes(Onglet):
         # Search Bar
         self.search_bar = QLineEdit()
         self.search_bar.setPlaceholderText("Recherche...")
-        self.search_bar.textChanged.connect(self.filter_employees)
+        self.search_bar.textChanged.connect(self.filter_items)
         left_layout.addWidget(self.search_bar)
         self.search_bar.setStyleSheet("""
             QLineEdit {
@@ -119,60 +124,66 @@ class Onglet_Employes(Onglet):
 
         # Set the initial shop and employee list
         if self.shops:
+            self.current_shop = self.shops[0][2]
             self.on_shop_changed(self.shops[0][2])
         
         return main_layout
 
+    def refresh_page(self):
+        self.shop_combo.clear()
+        
+        shops = fetch.fetch_succursale()    
+        for s in shops:
+            self.shop_combo.addItem(s[2])
+        
+        current_shop = shops[0][2]
+        self.update_employee_list(current_shop)
+        
+        self.selected_employee = None
+    
     def on_shop_changed(self, shop_name):
         """Update the employee list when a new shop is selected."""
         self.current_shop = shop_name
         self.update_employee_list(shop_name)
 
     def update_employee_list(self, shop_name):
-        print(shop_name)
-        employee = fetch.get_employees_by_succursale(shop_name)
-        print(employee, " lololol ")
+        shop_id = fetch.get_shop_id_by_name(shop_name)
+        employees = fetch.get_employees_by_shop_id(shop_id)
 
-        # Clear the current list
         self.employee_list.clear()
-
         # Add employee names to the list widget
-        #for emp in employee:
-        #    self.employee_list.addItem(employee['name'])
-
+        for emp in employees:
+            emp_info = fetch.get_employee_info(emp[0])
+            item = QListWidgetItem(str(emp_info[2] + " " +  emp_info[3]))
+            item.setData(1, emp[0])
+            self.employee_list.addItem(item)
+            
     def on_employee_clicked(self, item):
         """Display the selected employee's details in the right section."""
-        employee_name = item.text()
-
-        # Find the employee based on the selected name
-        employees = self.employees.get(self.current_shop, [])
-        for employee in employees:
-            if employee['name'] == employee_name:
-                self.selected_employee = employee
-                self.display_employee_details()
-                break
-
-    def display_employee_details(self):
-        """Display the detailed information of the selected employee."""
-        if self.selected_employee:
+        emp_infos = fetch.get_employee_info_by_id(item.data(1))
+        if emp_infos is not None:
             details = (
-                f"Name: {self.selected_employee['name']}\n"
-                f"Position: {self.selected_employee['position']}\n"
-                f"Email: {self.selected_employee['email']}\n"
-                f"Phone: {self.selected_employee['phone']}\n"
+                f"Prenom: {emp_infos[2]}\n"
+                f"Nom: {emp_infos[3]}\n"
+                f"Date naissance: {emp_infos[4]}\n"
+                f"Email: {emp_infos[5]}\n"
+                f"Telephone: {emp_infos[6]}\n"
+                f"Adresse: {emp_infos[7]}\n"
             )
             self.employee_details.setText(details)
+            self.selected_employee = emp_infos
             
-    def filter_employees(self, text):
-        """Filter the employees list based on the search input."""
-        filter_text = text.lower()
-        employees = self.employees.get(self.current_shop, [])
-        filtered_employees = [emp for emp in employees if filter_text in emp['name'].lower()]
+    def filter_items(self):
+        filter_text = self.search_bar.text().lower()
 
-        # Clear existing rows and repopulate with filtered data
-        self.employee_list.clear()
-        for employee in filtered_employees:
-            self.employee_list.addItem(employee['name'])
+        for index in range(self.employee_list.count()):
+            item = self.employee_list.item(index)
+            item_text = item.text().lower()
+
+            if filter_text in item_text:
+                item.setHidden(False)
+            else:
+                item.setHidden(True) 
     
     def open_modify_dialog(self):
         """Open the modify dialog to edit the selected employee's details."""
@@ -180,50 +191,8 @@ class Onglet_Employes(Onglet):
             dialog = ModifyEmployeeDialog(self.selected_employee)
             dialog.exec()
 
-            # After closing the dialog, update the employee list with any changes
-            self.update_employee_list()
-    
-    
-    
-    ## A DEPLACER DANS LE DOCUEMNT fetch.py      
-    def ajouter_nouveau_employe(self, nas, nom ,prenom, date_naissance, email, telephone, adresse, id_succursale, id_poste):
-        conn = sqlite3.connect('erp.db')
-        cursor = conn.cursor()
-        try:
-            # Ajouter les informations de l'entité (INFO_CIE)
-            cursor.execute("""
-                INSERT INTO info.INFO_PERSONNEL (nas, nom, prenom, date_naissance, email, telephone, adresse)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (nas, nom, prenom, date_naissance, email, telephone, adresse))
+            self.refresh_page()
             
-            # Récupérer l'ID de l'entité insérée
-            id_entite = cursor.lastrowid
-            
-            # Ajouter la succursale associée
-            cursor.execute("""
-                INSERT INTO rh.EMPLOYE (id_employe)
-                VALUES (?)
-            """, (id_entite,))
-            
-            cursor.execute("""
-                INSERT INTO rh.EMPLOYE (id_succursale)
-                VALUES (?)
-            """, (id_succursale,))
-            
-            cursor.execute("""
-                INSERT INTO rh.EMPLOYE (id_poste)
-                VALUES (?)
-            """, (id_poste,))
-            
-            conn.commit()
-            print(f"Succursale '{nom}' ajoutée avec succès.")
-        except sqlite3.Error as e:
-            print(f"Erreur SQL : {e}")
-            raise e
-        finally:
-            conn.close()
-
-
 
 class ModifyEmployeeDialog(QDialog):
     def __init__(self, employee_data, parent=None):
@@ -233,25 +202,30 @@ class ModifyEmployeeDialog(QDialog):
         self.setGeometry(150, 150, 400, 300)
 
         self.employee_data = employee_data
+        self.employee_ID = employee_data[0]
 
         # Create form layout for the dialog
         layout = QFormLayout(self)
 
-        self.name_edit = QLineEdit(self)
-        self.name_edit.setText(self.employee_data['name'])
-        layout.addRow("Name:", self.name_edit)
-
-        self.position_edit = QLineEdit(self)
-        self.position_edit.setText(self.employee_data['position'])
-        layout.addRow("Position:", self.position_edit)
+        self.prenom_edit = QLineEdit(self)
+        self.prenom_edit.setText(self.employee_data[2])
+        layout.addRow("Prenom:", self.prenom_edit)
+        
+        self.nom_edit = QLineEdit(self)
+        self.nom_edit.setText(self.employee_data[3])
+        layout.addRow("Nom:", self.nom_edit)
 
         self.email_edit = QLineEdit(self)
-        self.email_edit.setText(self.employee_data['email'])
+        self.email_edit.setText(self.employee_data[5])
         layout.addRow("Email:", self.email_edit)
 
-        self.phone_edit = QLineEdit(self)
-        self.phone_edit.setText(self.employee_data['phone'])
-        layout.addRow("Phone:", self.phone_edit)
+        self.telephone_edit = QLineEdit(self)
+        self.telephone_edit.setText(self.employee_data[6])
+        layout.addRow("Telephone:", self.telephone_edit)
+
+        self.adresse_edit = QLineEdit(self)
+        self.adresse_edit.setText(self.employee_data[7])
+        layout.addRow("Adresse:", self.adresse_edit)
 
         # Save button
         save_button = QPushButton("Save", self)
@@ -259,12 +233,11 @@ class ModifyEmployeeDialog(QDialog):
         layout.addRow(save_button)
 
     def save_changes(self):
-        """Save the changes to the employee data."""
-        self.employee_data['name'] = self.name_edit.text()
-        self.employee_data['position'] = self.position_edit.text()
-        self.employee_data['email'] = self.email_edit.text()
-        self.employee_data['phone'] = self.phone_edit.text()
-
-        self.accept()  # Close the dialog
-
-
+        self.prenom_edit.text()
+        self.nom_edit.text()
+        self.email_edit.text()
+        self.telephone_edit.text()
+        self.adresse_edit.text()
+        
+        fetch.update_employee_info(self.employee_ID, self.prenom_edit.text(), self.nom_edit.text(), self.email_edit.text(), self.telephone_edit.text(), self.adresse_edit.text())
+        self.accept()

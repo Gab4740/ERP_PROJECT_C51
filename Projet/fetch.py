@@ -153,9 +153,99 @@ def add_employee_to_db(nas, nom, prenom, date_naissance, email, telephone, adres
     finally:
         conn.close()
         
-#def get_employees_by_succursale(nom_succursale):
-#    conn = sqlite3.connect('erp.db')
-#    cursor = conn.cursor()
+def get_shop_id_by_name(shop_name):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    query = "SELECT id_entite FROM info_CIE WHERE nom = ?"
+    cursor.execute(query, (shop_name,))
+    result = cursor.fetchone()
+    if result:
+        return result[0]
+    else:
+        return None
+
+# Function to get all employees for a shop based on shop's ID
+def get_employees_by_shop_id(shop_id):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    # Get all succursales for the given shop's id_entite
+    query = """
+        SELECT e.id_employe, e.id_horaire, e.id_poste, e.id_salaire, e.id_succursale 
+        FROM rh_EMPLOYE e
+        INNER JOIN succursales_SUCCURSALE s ON e.id_succursale = s.id_succursale
+        WHERE s.id_info = ?
+    """
+    cursor.execute(query, (shop_id,))
+    employees = cursor.fetchall()
+    
+    return employees
+
+def get_employee_info(employee_id):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    
+    query = "SELECT * FROM info_PERSONNEL WHERE id_individus = ?"
+    cursor.execute(query, (employee_id,))
+    employee_info = cursor.fetchone()
+    
+    return employee_info
+
+def get_employee_info_by_name(first_name, last_name):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    
+    query = """
+        SELECT * FROM info_PERSONNEL 
+        WHERE nom = ? AND prenom = ?
+    """
+    cursor.execute(query, (first_name, last_name))
+    employee_info = cursor.fetchone()
+    
+    return employee_info
+
+def get_employee_info_by_id(employee_id):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    
+    query = """
+        SELECT * FROM info_PERSONNEL
+        WHERE id_individus = ?
+    """
+    cursor.execute(query, (employee_id,))
+    employee_info = cursor.fetchone()
+    
+    conn.close()
+    return employee_info
+
+def update_employee_info(employee_id, new_prenom, new_nom, new_email, new_telephone, new_adresse):
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+
+    try:
+        query = """
+            UPDATE info_PERSONNEL
+            SET prenom = ?, nom = ?, email = ?, telephone = ?, adresse = ?
+            WHERE id_individus = ?
+        """
+
+        # Execute the query with the new values and employee_id
+        cursor.execute(query, (new_prenom, new_nom, new_email, new_telephone, new_adresse, employee_id))
+
+        # Commit the transaction
+        conn.commit()
+
+        print(f"Employee {employee_id} information updated successfully.")
+        
+    except sqlite3.Error as e:
+        print(f"Error updating employee information: {e}")
+        conn.rollback()  # Rollback if there is any error
+    
+    finally:
+        # Close the connection
+        conn.close()
+
 
 def ajouter_horaire(id_employe, id_jour_de_travail, heure_debut, heure_fin):
     conn = sqlite3.connect('erp.db')
