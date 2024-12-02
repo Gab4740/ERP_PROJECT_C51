@@ -54,18 +54,65 @@ def fetch_produit():
 def fetch_horaire():
     conn = sqlite3.connect('erp.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM rh.HORAIRE")
+    
+    # Fetch horaire with related conges and jour_de_travail information
+    cursor.execute("""
+        SELECT rh_HORAIRE.id_horaire, rh_CONGES.date AS date_conge, rh_JOUR_TRAVAIL.id_jour_de_travail 
+        FROM rh_HORAIRE
+        INNER JOIN rh_CONGES ON rh_HORAIRE.id_conges = rh_CONGES.id_conges
+        INNER JOIN rh_JOUR_TRAVAIL ON rh_HORAIRE.id_jour_de_travail = rh_JOUR_TRAVAIL.id_jour_de_travail
+    """)
     result = cursor.fetchall()
     conn.close()
     results_dict = [
         {
-            "id_horaire": result[0],
-            "id_conges": result[1],
-            "id_jour_de_travail": result[2]
+            "id_horaire": row[0],
+            "date_conge": row[1],
+            "id_jour_de_travail": row[2]
         }
-        for result in result
+        for row in result
+    ]
+    
+    return results_dict
+
+
+def fetch_conge():
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id_conges, date 
+        FROM rh_CONGES
+    """)
+    result = cursor.fetchall()
+    conn.close()
+    results_dict = [
+        {
+            "id_conges": row[0],
+            "date": row[1]
+        }
+        for row in result
     ]
     return results_dict
+
+def fetch_jour_travail():
+    conn = sqlite3.connect('erp.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id_jour_de_travail, heure_debut, heure_fin
+        FROM rh_JOUR_TRAVAIL
+    """)
+    result = cursor.fetchall()
+    conn.close()
+    results_dict = [
+        {
+            "id_jour_de_travail": row[0],
+            "heure_debut": row[1],
+            "heure_fin": row[2]
+        }
+        for row in result
+    ]
+    return results_dict
+
 
 ############################
 ######## EMPLOYÉ ###########

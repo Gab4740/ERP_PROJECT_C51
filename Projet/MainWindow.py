@@ -1,7 +1,8 @@
 from datetime import datetime
 import math as m
 import locale
-import Onglet_Horaire as horraire
+import Onglet_Horaire as horaire
+import Onglet_Horaire_EMP as horaireEmp
 import Onglet_Entrepot as entrepot
 import Onglet_Magasin as magasin
 import Onglet_Employes as employes
@@ -28,7 +29,8 @@ class MainWindow(QMainWindow):
         
         # ONGLETS EXISTANT
         self.onglets_existants = [
-            horraire.Onglet_horaire("Horaire", "any"),
+            horaire.Onglet_horaire("Modification Horaire", "any"),
+            horaireEmp.Onglet_horaire("Horaire", "any"),
             magasin.Onglet_magasin("Magasins", "any", parent_widget=self),
             entrepot.Onglet_entrepot("Entrepôts", "any", parent_widget=self),
             clients.Onglet_Client("Clients", "any", parent_widget=self),

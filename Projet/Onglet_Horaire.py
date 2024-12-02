@@ -1,16 +1,19 @@
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QLineEdit, QComboBox, QTextEdit
 from Onglet import Onglet
 from PySide6.QtCore import QDate, Qt
+import sqlite3
+import fetch
 
 class Onglet_horaire(Onglet):
     def __init__(self, name, visibility):
-        super().__init__(name, visibility)  # Appel à la méthode du parent, rien d'autre ici.
+        super().__init__(name, visibility)
 
     def create_content(self):
         # Définition des variables nécessaires
         self.start_date = QDate.currentDate().addDays(-QDate.currentDate().dayOfWeek() + 1)
         self.employees = ["Alice", "Bob", "Charlie", "David", "Eva"]
         self.schedule = {employee: {} for employee in self.employees}
+        self.leaves = {employee: {} for employee in self.employees}  # Nouveau dictionnaire pour les congés
 
         layout = QVBoxLayout()  # Layout principal
 
@@ -29,7 +32,7 @@ class Onglet_horaire(Onglet):
         self.next_week_button = QPushButton("Semaine suivante")
         layout.addWidget(self.next_week_button)
 
-        # Layout pour la modification de l'horaire
+        # Layout pour la modification de l'horaire ou du congé
         modify_layout = QHBoxLayout()
 
         # Liste des employés dans le combo box
@@ -44,13 +47,13 @@ class Onglet_horaire(Onglet):
         modify_layout.addWidget(QLabel("Jour:"))
         modify_layout.addWidget(self.day_combo)
 
-        # Champ de texte pour saisir l'horaire
+        # Champ de texte pour saisir l'horaire ou le congé
         self.hour_input = QLineEdit()
         self.hour_input.setPlaceholderText("Nouvel horaire (ex: 9h00 - 18h00)")
         modify_layout.addWidget(QLabel("Nouvel horaire:"))
         modify_layout.addWidget(self.hour_input)
 
-        # Bouton pour modifier l'horaire
+        # Bouton pour modifier l'horaire ou congé
         self.modify_button = QPushButton("Modifier l'horaire")
         modify_layout.addWidget(self.modify_button)
 
@@ -67,7 +70,8 @@ class Onglet_horaire(Onglet):
         self.generate_button.clicked.connect(self.display_schedule)
         self.prev_week_button.clicked.connect(self.show_previous_week)
         self.next_week_button.clicked.connect(self.show_next_week)
-        self.modify_button.clicked.connect(self.modify_schedule)
+        self.modify_button.clicked.connect(self.modify_schedule_or_leave)  # Logique de modification dynamique
+        self.leave_button.clicked.connect(self.display_leaves)  # Afficher les congés
 
     def display_schedule(self):
         """ Afficher l'horaire des employés de la semaine actuelle """
@@ -82,11 +86,61 @@ class Onglet_horaire(Onglet):
             schedule_text += f"{employee:<8} | "  
             for i in range(7):  
                 day_date = self.start_date.addDays(i).toString(Qt.ISODate)
-                hour = self.schedule[employee].get(day_date, "8h00 - 17h00")
-                schedule_text += f"{hour:<15} | "  
+                
+                # Si l'employé a un congé ce jour-là, afficher "C/D"
+                if day_date in self.leaves[employee]:
+                    schedule_text += f"C/D | "
+                else:
+                    hour = self.schedule[employee].get(day_date, "8h00 - 17h00")
+                    schedule_text += f"{hour:<15} | "  
             schedule_text += "\n\n"  
 
         self.schedule_display.setPlainText(schedule_text)
+
+    def display_leaves(self):
+        """ Afficher les congés des employés de la semaine actuelle """
+        # Changer les éléments pour gérer les congés
+        self.hour_input.setPlaceholderText("Nouvel congé (ex: Congé payé)")
+        self.modify_button.setText("Modifier le congé")
+        self.modify_button.clicked.disconnect()
+        self.modify_button.clicked.connect(self.modify_leave)  # Lier au traitement des congés
+
+        header = "Employé  | " + " | ".join(
+            [f"{day} - {self.start_date.addDays(i).toString('dd/MM/yyyy')}" for i, day in enumerate(["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"])]
+        ) + "\n"
+        header += "-" * (len(header) - 1) + "\n"
+        
+        leave_text = header
+        
+        for employee in self.employees:
+            leave_text += f"{employee:<8} | "
+            for i in range(7):  
+                day_date = self.start_date.addDays(i).toString(Qt.ISODate)
+                leave = self.leaves[employee].get(day_date, "Aucun congé")
+                leave_text += f"{leave:<15} | "  
+            leave_text += "\n\n"  
+
+        self.schedule_display.setPlainText(leave_text)
+
+    def modify_leave(self):
+        """ Modifier le congé d'un employé pour un jour donné """
+        employee = self.employee_combo.currentText()
+        day_index = self.day_combo.currentIndex()
+        new_leave = self.hour_input.text()  # "hour_input" sert pour les congés aussi
+
+        day_date = self.start_date.addDays(day_index).toString(Qt.ISODate)
+
+        if new_leave:
+            self.leaves[employee][day_date] = new_leave  # Ajoute un congé au jour sélectionné
+            self.hour_input.clear()
+            self.display_leaves()  # Rafraîchir l'affichage des congés
+
+    def modify_schedule_or_leave(self):
+        """ Modifier l'horaire ou le congé d'un employé en fonction du mode (horaire ou congé) """
+        if self.modify_button.text() == "Modifier l'horaire":
+            self.modify_schedule()
+        else:
+            self.modify_leave()
 
     def modify_schedule(self):
         """ Modifier l'horaire d'un employé pour un jour donné """
@@ -110,3 +164,87 @@ class Onglet_horaire(Onglet):
         """ Afficher l'horaire de la semaine suivante """
         self.start_date = self.start_date.addDays(7)
         self.display_schedule()
+
+
+    #ajouter le fetch 
+    
+    def ajouter_conge(self):
+        """ Ajouter un congé pour un employé à une date donnée dans la base de données """
+        employee = self.employee_combo.currentText()  # Récupérer l'employé sélectionné
+        day_index = self.day_combo.currentIndex()  # Récupérer le jour sélectionné
+        new_leave = self.hour_input.text()  # Récupérer le type de congé saisi (ex : Congé payé)
+        
+        if new_leave:
+            # Calculer la date à partir de start_date et du jour sélectionné
+            day_date = self.start_date.addDays(day_index).toString(Qt.ISODate)
+
+            # Connexion à la base de données
+            conn = sqlite3.connect('erp.db')
+            cursor = conn.cursor()
+
+            try:
+                # Vérifier si l'employé existe dans la table info_PERSONNEL
+                cursor.execute("SELECT id_individus FROM info_PERSONNEL WHERE nom = ?", (employee,))
+                employee_id = cursor.fetchone()
+
+                if employee_id:
+                    employee_id = employee_id[0]  # Récupérer l'id de l'employé
+
+                    # Insérer le congé dans la table congé pour l'employé
+                    cursor.execute("""
+                        INSERT INTO rh.CONGE (id_employe, date_conge, type_conge)
+                        VALUES (?, ?, ?)
+                    """, (employee_id, day_date, new_leave))
+                    conn.commit()
+
+                    # Rafraîchir l'affichage des congés
+                    self.display_leaves()
+                    self.hour_input.clear()  # Réinitialiser le champ de saisie
+                    print(f"Congé ajouté pour {employee} le {day_date} : {new_leave}")
+                else:
+                    print("Employé non trouvé.")
+            except sqlite3.Error as e:
+                print(f"Erreur SQLite: {e}")
+            finally:
+                conn.close()
+
+    
+    def ajouter_horaire(self):
+        """ Ajouter un horaire pour un employé spécifique à une date donnée dans la base de données """
+        employee = self.employee_combo.currentText()  # Récupérer l'employé sélectionné
+        day_index = self.day_combo.currentIndex()  # Récupérer le jour sélectionné
+        new_schedule = self.hour_input.text()  # Récupérer l'horaire saisi
+        
+        if new_schedule:
+            # Calculer la date à partir de start_date et du jour sélectionné
+            day_date = self.start_date.addDays(day_index).toString(Qt.ISODate)
+
+            # Connexion à la base de données
+            conn = sqlite3.connect('erp.db')
+            cursor = conn.cursor()
+
+            try:
+                # Vérifier si l'employé existe dans la table info_PERSONNEL
+                cursor.execute("SELECT id_individus FROM info_PERSONNEL WHERE nom = ?", (employee,))
+                employee_id = cursor.fetchone()
+                
+                if employee_id:
+                    employee_id = employee_id[0]  # Récupérer l'id de l'employé
+
+                    # Insérer l'horaire dans la table horaire pour l'employé
+                    cursor.execute("""
+                        INSERT INTO rh.HORAIRE (id_employe, date_horaire, horaire)
+                        VALUES (?, ?, ?)
+                    """, (employee_id, day_date, new_schedule))
+                    conn.commit()
+
+                    # Rafraîchir l'affichage de l'horaire
+                    self.display_schedule()
+                    self.hour_input.clear()  # Réinitialiser le champ de saisie
+                    print(f"Horaire ajouté pour {employee} le {day_date} : {new_schedule}")
+                else:
+                    print("Employé non trouvé.")
+            except sqlite3.Error as e:
+                print(f"Erreur SQLite: {e}")
+            finally:
+                conn.close()
