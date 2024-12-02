@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QTextEdit, QDialog, QMessageBox, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QComboBox, QLineEdit, QTextEdit, QDialog, QMessageBox, QWidget, QSpinBox, QDoubleSpinBox, QDateEdit
 from Onglet import Onglet
 import fetch
 
@@ -93,6 +93,13 @@ class Onglet_entrepot(Onglet):
                 f"Email : {infos_entrepot['email']}\n"
                 f"Type : {infos_entrepot['type']}\n"
             )
+            
+            ###### AJOUTER CUSTOM FIELDS ##########################
+            custom_fields = fetch.fetch_custom_field_values("Entrepôt", infos_entrepot["id_entrepot"])
+            for field_name, value in custom_fields:
+                details += f"{field_name}: {value}\n"
+            ##############################################################################
+            
             self.resultats_display.setText(details)
         else:
             # Si aucune info trouvée
@@ -100,35 +107,32 @@ class Onglet_entrepot(Onglet):
 
     def on_ajouter_clicked(self):
         dialog = AjouterEntrepotDialog(self.parent_widget if isinstance(self.parent_widget, QWidget) else None)
-        if dialog.exec():  # Si l'utilisateur valide le dialogue
-            data = {
-                "nom": dialog.nom_input.text().strip(),
-                "adresse": dialog.adresse_input.text().strip(),
-                "telephone": dialog.telephone_input.text().strip(),
-                "email": dialog.email_input.text().strip(),
-                "type_cie": dialog.type_input.text().strip(),
-            }
-            fetch.ajouter_entrepot(
-                nom=data["nom"],
-                adresse=data["adresse"],
-                telephone=data["telephone"],
-                email=data["email"],
-                type_cie=data["type_cie"],
-            )
-            QMessageBox.information(
-                self.parent_widget if isinstance(self.parent_widget, QWidget) else None,
-                "Succès",
-                "Entrepôt ajouté avec succès."
-            )
+        if dialog.exec():
+            data = dialog.confirmer()
+            if data:
+                entrepot_id = fetch.ajouter_entrepot(
+                    nom=data["nom"],
+                    adresse=data["adresse"],
+                    telephone=data["telephone"],
+                    email=data["email"],
+                    type_cie=data["type_cie"],
+                )
 
+                # Enregistrer les champs personnalisés
+                fetch.save_custom_field_values("Entrepôt", entrepot_id, data["custom_fields"])
+
+                QMessageBox.information(
+                    self.parent_widget if isinstance(self.parent_widget, QWidget) else None,
+                    "Succès",
+                    "Entrepôt ajouté avec succès."
+                )
+                self.load_entrepot_list()
         else:
             QMessageBox.information(
                 self.parent_widget if isinstance(self.parent_widget, QWidget) else None,
                 "Annulé",
                 "Ajout annulé."
             )
-        
-        self.load_entrepot_list()
 
     def on_supprimer_clicked(self):
         selected_entrepot = self.entrepot_combo.currentText()  
@@ -184,6 +188,28 @@ class AjouterEntrepotDialog(QDialog):
         layout.addWidget(self.email_input)
         layout.addWidget(QLabel("Type:"))
         layout.addWidget(self.type_input)
+        
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        self.dynamic_fields = {}
+        dynamic_fields = fetch.fetch_custom_fields("Entrepôt")
+        for field_id, field_name, field_type, is_required in dynamic_fields:
+            if field_type == "TEXT":
+                widget = QLineEdit()
+            elif field_type == "INTEGER":
+                widget = QSpinBox()
+            elif field_type == "FLOAT":
+                widget = QDoubleSpinBox()
+            elif field_type == "DATE":
+                widget = QDateEdit()
+                widget.setCalendarPopup(True)
+            else:
+                continue
+
+            self.dynamic_fields[field_id] = widget
+            layout.addWidget(QLabel(field_name))
+            layout.addWidget(widget)
+        ##############################################################################
+        
 
         # Boutons
         buttons_layout = QHBoxLayout()
@@ -217,7 +243,18 @@ class AjouterEntrepotDialog(QDialog):
             QMessageBox.warning(self, "Erreur", "Veuillez entrer une adresse email valide.")
             return
 
-        # Données validées
+        custom_field_values = []
+        for field_id, widget in self.dynamic_fields.items():
+            if isinstance(widget, QLineEdit):
+                value = widget.text()
+            elif isinstance(widget, QSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDoubleSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDateEdit):
+                value = widget.date().toString("yyyy-MM-dd")
+            custom_field_values.append((field_id, value))
+
         self.accept()
         return {
             "nom": nom,
@@ -225,4 +262,5 @@ class AjouterEntrepotDialog(QDialog):
             "telephone": telephone,
             "email": email,
             "type_cie": type_cie,
+            "custom_fields": custom_field_values
         }
