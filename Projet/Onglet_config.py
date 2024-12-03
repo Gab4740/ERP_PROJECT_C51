@@ -84,7 +84,6 @@ class Onglet_Config(Onglet):
         self.fields_list.clear()
         self.custom_fields = fetch.fetch_custom_fields()  # Charger tous les champs personnalisés sans filtre
         if not self.custom_fields:
-            QMessageBox.warning(self.widget, "Aucun champ", "Aucun champ personnalisé trouvé.")
             return
         for field in self.custom_fields:
             field_name = field[1]
