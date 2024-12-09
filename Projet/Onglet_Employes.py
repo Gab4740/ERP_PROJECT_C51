@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QMessageBox, QVBoxLayout, QHBoxLayout, QComboBox, QListWidget, QTextEdit, QLabel, QLineEdit, QPushButton, QDialog, QFormLayout, QListWidgetItem
+from PySide6.QtWidgets import QMessageBox, QVBoxLayout, QHBoxLayout, QComboBox, QListWidget, QTextEdit, QLabel, QLineEdit, QPushButton, QDialog, QFormLayout, QListWidgetItem, QSpinBox, QDoubleSpinBox, QDateEdit, QWidget
+from PySide6.QtCore import QDate
 from Onglet import Onglet
 import sqlite3
 import fetch
@@ -147,6 +148,7 @@ class Onglet_Employes(Onglet):
             self.on_shop_changed(self.shops[0][2])
         
         return main_layout
+
     
     def supprimer_employer(self):
         if self.selected_employee:
@@ -199,6 +201,13 @@ class Onglet_Employes(Onglet):
                 f"Telephone: {emp_infos[6]}\n"
                 f"Adresse: {emp_infos[7]}\n"
             )
+            
+            ###### AJOUTER CUSTOM FIELDS ##########################
+            custom_fields = fetch.fetch_custom_field_values("Employee", emp_infos[0])
+            for field_name, value in custom_fields:
+                details += f"{field_name}: {value}\n"
+            ##############################################################################
+            
             self.employee_details.setText(details)
             self.selected_employee = emp_infos
             
@@ -221,20 +230,24 @@ class Onglet_Employes(Onglet):
             dialog.exec()
 
             self.refresh_page()
-            
 
 class ModifyEmployeeDialog(QDialog):
     def __init__(self, employee_data, parent=None):
         super().__init__(parent)
 
-        self.setWindowTitle("Modify Employee")
+        self.setWindowTitle("Modifier l'employée")
         self.setGeometry(150, 150, 400, 300)
 
         self.employee_data = employee_data
         self.employee_ID = employee_data[0]
+        self.dynamic_fields = {}
 
         # Create form layout for the dialog
         layout = QFormLayout(self)
+        
+        self.nas_edit = QLineEdit(self)
+        self.nas_edit.setText(self.employee_data[1])
+        layout.addRow("NAS:", self.nas_edit)
 
         self.prenom_edit = QLineEdit(self)
         self.prenom_edit.setText(self.employee_data[2])
@@ -251,6 +264,34 @@ class ModifyEmployeeDialog(QDialog):
         self.adresse_edit = QLineEdit(self)
         self.adresse_edit.setText(self.employee_data[7])
         layout.addRow("Adresse:", self.adresse_edit)
+        
+        
+        
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        dynamic_fields = fetch.fetch_custom_fields("Employee")
+        dynamic_values = fetch.fetch_custom_field_values("Employee", self.employee_ID, as_dict=True)
+        for field_id, field_name, field_type, is_required in dynamic_fields:
+            if field_type == "TEXT":
+                widget = QLineEdit(self)
+                widget.setText(dynamic_values.get(field_id, ""))
+            elif field_type == "INTEGER":
+                widget = QSpinBox(self)
+                widget.setValue(int(dynamic_values.get(field_id, 0)))
+            elif field_type == "FLOAT":
+                widget = QDoubleSpinBox(self)
+                widget.setValue(float(dynamic_values.get(field_id, 0.0)))
+            elif field_type == "DATE":
+                widget = QDateEdit(self)
+                widget.setCalendarPopup(True)
+                date_value = dynamic_values.get(field_id)
+                if date_value:
+                    widget.setDate(QDate.fromString(date_value, "yyyy-MM-dd"))
+            else:
+                continue  
+            
+            self.dynamic_fields[field_id] = widget
+            layout.addRow(field_name, widget)
+        ##############################################################################
 
         # Save button
         save_button = QPushButton("Save", self)
@@ -258,10 +299,29 @@ class ModifyEmployeeDialog(QDialog):
         layout.addRow(save_button)
 
     def save_changes(self):
-        self.prenom_edit.text()
-        self.nom_edit.text()
-        self.telephone_edit.text()
-        self.adresse_edit.text()
+        fetch.update_employee_info(
+            self.employee_ID,
+            self.nas_edit.text(),  
+            self.prenom_edit.text(), 
+            self.nom_edit.text(), 
+            self.telephone_edit.text(), 
+            self.adresse_edit.text()
+        )
         
-        fetch.update_employee_info(self.employee_ID, self.prenom_edit.text(), self.nom_edit.text(), self.telephone_edit.text(), self.adresse_edit.text())
+        ###### AJOUTER CUSTOM FIELDS ##########################
+        custom_field_values = []
+        for field_id, widget in self.dynamic_fields.items():
+            if isinstance(widget, QLineEdit):
+                value = widget.text()
+            elif isinstance(widget, QSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDoubleSpinBox):
+                value = widget.value()
+            elif isinstance(widget, QDateEdit):
+                value = widget.date().toString("yyyy-MM-dd")
+            custom_field_values.append((field_id, value))
+        ##############################################################################
+        
+        #fetch.update_employee_info(self.employee_ID, self.prenom_edit.text(), self.nom_edit.text(), self.telephone_edit.text(), self.adresse_edit.text())
+        fetch.update_custom_field_values("Employee", self.employee_ID, custom_field_values)
         self.accept()

@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QGridLayout, QStackedWidget
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
 import sys
 import MainWindow
 import client
@@ -38,7 +39,9 @@ class Connexion(QMainWindow):
         layout = QVBoxLayout()
         layout.setContentsMargins(50, 20, 50, 40)
 
-        titre = QLabel("Connexion")
+        titre = QLabel("ERP Development")
+        logo = QPixmap('./logo.png')
+        titre.setPixmap(logo.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio))
         titre.setAlignment(Qt.AlignCenter)
         titre.setStyleSheet("font-size: 18px; font-weight: bold;")
         layout.addWidget(titre)

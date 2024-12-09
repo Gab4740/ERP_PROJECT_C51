@@ -145,11 +145,11 @@ class MainWindow(QMainWindow):
         top_right_layout = QVBoxLayout(top_right_widget)
 
         self.logo_label = QLabel(self)
-        self.logo_pixmap = QPixmap('../logo.png') # file png
+        self.logo_pixmap = QPixmap('./logo.png') # file png
         self.logo_label.setPixmap(self.logo_pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio))  # Resize the logo
         self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.enterprise_name_label = QLabel("Eugénie's Coffee", self)  # enterprise name
+        self.enterprise_name_label = QLabel("ERP Development", self)  # enterprise name
         self.enterprise_name_label.setStyleSheet("font-size: 18px; color: black; font-weight: bold;")
         self.enterprise_name_label.setAlignment(Qt.AlignmentFlag.AlignRight)
 

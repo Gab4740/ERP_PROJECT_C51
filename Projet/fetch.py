@@ -667,6 +667,156 @@ def fetch_taxes():
 
 
 
+############################
+####### FOURNISSEUR ##########
+############################
+def fetch_fournisseurs():
+    """
+    Fetch all suppliers from the database.
+    Returns:
+        List of tuples (id_fournisseur, nom, adresse, telephone, email, type)
+    """
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    query = """
+    SELECT f.id_fournisseur, i.nom, i.adresse, i.telephone, i.email, i.type
+    FROM fournisseurs_FOURNISSEUR f
+    INNER JOIN info_CIE i ON f.id_info = i.id_entite
+    """
+    cursor.execute(query)
+    results = cursor.fetchall()
+
+    conn.close()
+    return results
+
+
+
+
+def fetch_fournisseur_details(fournisseur_id):
+    """
+    Fetch details of a specific supplier by its ID.
+    Args:
+        fournisseur_id (int): ID of the supplier.
+    Returns:
+        Dict containing details of the supplier or None if not found.
+    """
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    query = """
+    SELECT f.id_fournisseur AS id, i.nom AS name, i.adresse AS address, 
+           i.telephone AS phone, i.email AS email, i.type AS type
+    FROM fournisseurs_FOURNISSEUR f
+    INNER JOIN info_CIE i ON f.id_info = i.id_entite
+    WHERE f.id_fournisseur = ?
+    """
+    cursor.execute(query, (fournisseur_id,))
+    result = cursor.fetchone()
+
+    conn.close()
+
+    if result:
+        keys = ["id", "name", "address", "phone", "email", "type"]
+        return dict(zip(keys, result))
+    return None
+
+
+
+def add_fournisseur(name, address, phone, email, type):
+    """
+    Add a new supplier to the database.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    try:
+        # Insert into `info_CIE`
+        cursor.execute("""
+        INSERT INTO info_CIE (nom, adresse, telephone, email, type)
+        VALUES (?, ?, ?, ?, ?)
+        """, (name, address, phone, email, type))
+        id_info = cursor.lastrowid
+
+        # Insert into `fournisseurs_FOURNISSEUR`
+        cursor.execute("""
+        INSERT INTO fournisseurs_FOURNISSEUR (id_info)
+        VALUES (?)
+        """, (id_info,))
+        id_fournisseur = cursor.lastrowid
+
+        conn.commit()
+        return id_fournisseur
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
+
+def update_fournisseur(fournisseur_id, name, address, phone, email, type):
+    """
+    Update details for an existing supplier.
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    try:
+        # Update `info_CIE`
+        cursor.execute("""
+        UPDATE info_CIE
+        SET nom = ?, adresse = ?, telephone = ?, email = ?, type = ?
+        WHERE id_entite = (SELECT id_info FROM fournisseurs_FOURNISSEUR WHERE id_fournisseur = ?)
+        """, (name, address, phone, email, type, fournisseur_id))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+        
+        
+
+def delete_fournisseur(fournisseur_id):
+    """
+    Delete a supplier from the database.
+    Args:
+        fournisseur_id (int): ID of the supplier to delete.
+    """
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    try:
+        # Get id_info from fournisseurs_FOURNISSEUR
+        cursor.execute("""
+        SELECT id_info
+        FROM fournisseurs_FOURNISSEUR
+        WHERE id_fournisseur = ?
+        """, (fournisseur_id,))
+        id_info = cursor.fetchone()
+
+        if not id_info:
+            raise ValueError(f"Fournisseur ID {fournisseur_id} not found.")
+
+        # Delete from fournisseurs_FOURNISSEUR
+        cursor.execute("""
+        DELETE FROM fournisseurs_FOURNISSEUR
+        WHERE id_fournisseur = ?
+        """, (fournisseur_id,))
+
+        # Delete from info_CIE
+        cursor.execute("""
+        DELETE FROM info_CIE
+        WHERE id_entite = ?
+        """, (id_info[0],))
+
+        conn.commit()
+    except sqlite3.Error as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
+
+
 
 
 

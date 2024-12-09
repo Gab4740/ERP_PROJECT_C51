@@ -130,7 +130,7 @@ class AddCustomFieldDialog(QDialog):
         layout = QFormLayout(self)
 
         self.entity_type_input = QComboBox()
-        self.entity_type_input.addItems(["Commande", "Client", "Succursale", "Entrepôt"])  # À COMPLETER
+        self.entity_type_input.addItems(["Commande", "Client", "Employee", "Entrepôt", "Fournisseur", "Succursale"])  # À COMPLETER
         layout.addRow("Entité Associée:", self.entity_type_input)
 
         self.field_name_input = QLineEdit()
