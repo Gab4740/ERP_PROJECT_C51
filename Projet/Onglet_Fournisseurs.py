@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QListWidget, QTextEdit, QLabel, QLineEdit, QListWidgetItem, QPushButton, QDialog, QFormLayout
 from Onglet import Onglet
 import sqlite3
+from config import DB_PATH
 
 class Onglet_Fournisseurs(Onglet):
     def __init__(self, name, visibility):
@@ -244,7 +245,7 @@ class Onglet_Fournisseurs(Onglet):
     
     ## A DEPLACER DANS LE DOCUEMNT fetch.py      
     def ajouter_nouvelle_entreprise(self, nom, adresse, email, telephone, type_entreprise):
-        conn = sqlite3.connect('erp.db')
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         try:
             # Ajouter les informations de l'entité (INFO_CIE)

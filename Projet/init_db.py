@@ -1,9 +1,11 @@
 import os
 import sqlite3
+from config import DB_PATH
 
 def initialize_db():
-    if not os.path.exists('erp.db'):
-        conn = sqlite3.connect('erp.db')
+
+    if not os.path.exists(DB_PATH):
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         # Create tables
@@ -244,7 +246,7 @@ def initialize_db():
         # Add initial login entry
         cursor.execute("""
         INSERT OR IGNORE INTO info_LOGIN (id_employe, username, password, visibilite)
-        VALUES ((SELECT id_individus FROM info_PERSONNEL WHERE nom='Admin'), 'admin', 'admin', 0)
+        VALUES ((SELECT id_individus FROM info_PERSONNEL WHERE nom='Admin'), 'admin', 'admin', 5)
         """)
 
         # Add tax

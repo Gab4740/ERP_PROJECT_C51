@@ -3,6 +3,7 @@ from Onglet import Onglet
 from PySide6.QtCore import QDate, Qt
 import sqlite3
 import fetch
+from config import DB_PATH
 
 class Onglet_horaire(Onglet):
     def __init__(self, name, visibility):
@@ -179,7 +180,7 @@ class Onglet_horaire(Onglet):
             day_date = self.start_date.addDays(day_index).toString(Qt.ISODate)
 
             # Connexion à la base de données
-            conn = sqlite3.connect('erp.db')
+            conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
 
             try:
@@ -220,7 +221,7 @@ class Onglet_horaire(Onglet):
             day_date = self.start_date.addDays(day_index).toString(Qt.ISODate)
 
             # Connexion à la base de données
-            conn = sqlite3.connect('erp.db')
+            conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
 
             try:

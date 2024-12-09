@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
             employes.Onglet_Employes("Employés", 0),
             usagers.Onglet_usagers("Usagers", 0),
             fournisseurs.Onglet_Fournisseurs("Fournisseurs", 4),
-            config.Onglet_Config("Configurations", "any", parent_widget=self)
+            config.Onglet_Config("Configurations", 5, parent_widget=self)
         ]
         
         # VISIBILITÉ DICTIONNAIRE

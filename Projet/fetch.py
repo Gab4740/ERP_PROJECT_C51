@@ -1,12 +1,16 @@
 import sqlite3
 import csv
 import requests
+from config import DB_PATH
+
+def connect_to_db():
+    return sqlite3.connect(DB_PATH)
 
 ############################
 ######## VISIBILITÉ ########
 ############################
 def fetch_visibilite(username, password):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     cursor.execute("SELECT visibilite FROM info_LOGIN WHERE username = ? and password = ?", (username, password))
     result = cursor.fetchone() 
@@ -18,7 +22,7 @@ def fetch_visibilite(username, password):
 ######## INVENTAIRE ########
 ############################
 def fetch_inventaire():
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM inventaires_INVENTAIRE") # changer la requête selon le besoin
     result = cursor.fetchall() # ou fetchone()
@@ -30,7 +34,7 @@ def fetch_inventaire():
 ######## PRODUIT ###########
 ############################
 def fetch_produit():
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM produits_PRODUIT") # changer la requête selon le besoin
     results = cursor.fetchall() 
@@ -54,7 +58,7 @@ def fetch_produit():
 ######### HORAIRE ##########
 ############################
 def fetch_horaire():
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     
     # Fetch horaire with related conges and jour_de_travail information
@@ -79,7 +83,7 @@ def fetch_horaire():
 
 
 def fetch_conge():
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     cursor.execute("""
         SELECT id_conges, date 
@@ -97,7 +101,7 @@ def fetch_conge():
     return results_dict
 
 def fetch_jour_travail():
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     cursor.execute("""
         SELECT id_jour_de_travail, heure_debut, heure_fin
@@ -120,7 +124,7 @@ def fetch_jour_travail():
 ######## EMPLOYÉ ###########
 ############################
 def fetch_employe():
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM rh_EMPLOYE") # changer la requête selon le besoin
     result = cursor.fetchall() # ou fetchone()
@@ -128,7 +132,7 @@ def fetch_employe():
     return result[0] if result else None
 
 def add_employee_to_db(nas, nom, prenom, date_naissance, email, telephone, adresse=None, id_horaire=None, id_poste=None, id_salaire=None, id_succursale=None):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     try:
@@ -156,7 +160,7 @@ def add_employee_to_db(nas, nom, prenom, date_naissance, email, telephone, adres
         conn.close()
 
 def delete_employee(employee_id):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     try:
@@ -194,7 +198,7 @@ def delete_employee(employee_id):
         
 def insert_login_for_existing_employee(nas, visibilite, username, password = 12345):
     ''' USERNAME = EMAIL, PASSWORD = LEAVE AT DEFAULT VALUE'''
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     try:
@@ -218,7 +222,7 @@ def insert_login_for_existing_employee(nas, visibilite, username, password = 123
         conn.close()
         
 def get_shop_id_by_name(shop_name):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     query = "SELECT id_entite FROM info_CIE WHERE nom = ?"
@@ -231,7 +235,7 @@ def get_shop_id_by_name(shop_name):
 
 # Function to get all employees for a shop based on shop's ID
 def get_employees_by_shop_id(shop_id):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     # Get all succursales for the given shop's id_entite
@@ -247,7 +251,7 @@ def get_employees_by_shop_id(shop_id):
     return employees
 
 def get_employee_info_by_name(first_name, last_name):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     
     query = """
@@ -260,7 +264,7 @@ def get_employee_info_by_name(first_name, last_name):
     return employee_info
 
 def get_employee_info_by_id(employee_id):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     
     query = """
@@ -274,7 +278,7 @@ def get_employee_info_by_id(employee_id):
     return employee_info
 
 def update_employee_info(employee_id, new_prenom, new_nom, new_telephone, new_adresse):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     try:
@@ -302,7 +306,7 @@ def update_employee_info(employee_id, new_prenom, new_nom, new_telephone, new_ad
 
 
 def ajouter_horaire(id_employe, id_jour_de_travail, heure_debut, heure_fin):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     # Insertion de l'horaire dans la table HORAIRE
@@ -321,7 +325,7 @@ def ajouter_horaire(id_employe, id_jour_de_travail, heure_debut, heure_fin):
 ############################
 def fetch_succursale():
 
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     
     cursor.execute("""
@@ -337,7 +341,7 @@ def fetch_succursale():
     return result
 
 def get_succursale_id_by_name(nom):
-    conn = sqlite3.connect('erp.db') 
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     try:
@@ -375,7 +379,7 @@ def get_succursale_id_by_name(nom):
         conn.close()
         
 def ajouter_succursale(nom, adresse, telephone, email, type_cie):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     try:
         # Ajouter les informations de l'entité (INFO_CIE)
@@ -404,7 +408,7 @@ def ajouter_succursale(nom, adresse, telephone, email, type_cie):
 
 
 def supprimer_succursale(nom_succursale):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     # Trouver l'id_info correspondant au nom de la succursale
@@ -440,7 +444,7 @@ def supprimer_succursale(nom_succursale):
 ############################
 def fetch_entrepot():
 
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     
     cursor.execute("""
@@ -456,7 +460,7 @@ def fetch_entrepot():
     return result
 
 def ajouter_entrepot(nom, adresse, telephone, email, type_cie):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     try:
         # Ajouter les informations de l'entité (INFO_CIE)
@@ -486,7 +490,7 @@ def ajouter_entrepot(nom, adresse, telephone, email, type_cie):
 
 
 def supprimer_entrepot(nom_entrepot):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     # Trouver l'id_info correspondant au nom de la succursale
@@ -521,7 +525,7 @@ def supprimer_entrepot(nom_entrepot):
 ####### COMMANDES ##########
 ############################
 def fetch_commandes():
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     cursor.execute("""
         SELECT id_commande, date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut
@@ -532,7 +536,7 @@ def fetch_commandes():
     return result
 
 def ajouter_commande(date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteur, statut):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     try:
         cursor.execute("""
@@ -549,7 +553,7 @@ def ajouter_commande(date_commande, cout_apres_taxe, cout_avant_taxe, id_acheteu
 
 
 def modifier_commande(id_commande, cout_apres_taxe, cout_avant_taxe, statut):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     # Vérification du statut
@@ -572,7 +576,7 @@ def modifier_commande(id_commande, cout_apres_taxe, cout_avant_taxe, statut):
 
 
 def supprimer_commande(id_commande):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     # Vérification du statut et du délai
@@ -608,7 +612,7 @@ def get_acheteur_nom(id_acheteur):
     """
     Récupère le nom de l'acheteur (client, succursale ou entrepôt) en fonction de son ID.
     """
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     # Vérifier dans les clients
@@ -654,7 +658,7 @@ def get_acheteur_nom(id_acheteur):
 ####### TAXES ##########
 ############################
 def fetch_taxes():
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     cursor.execute("SELECT TPS, TVQ FROM finances_TAXES")
     taxes = cursor.fetchone()
@@ -671,7 +675,7 @@ def fetch_taxes():
 ##########################
 def fetch_client():
 
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     
     cursor.execute("""
@@ -688,7 +692,7 @@ def fetch_client():
 
 
 def ajouter_client(nas, nom, prenom, datenaissance, email, telephone, adresse, type):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     try:
@@ -718,7 +722,7 @@ def ajouter_client(nas, nom, prenom, datenaissance, email, telephone, adresse, t
 
 
 def supprimer_client(id_client):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     # Trouver l'ID de l'employé associé au client
@@ -748,7 +752,7 @@ def supprimer_client(id_client):
 
 
 def update_client(id_client, nas, nom, prenom, date_naissance, email, telephone, adresse, type_client):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
 
@@ -842,7 +846,7 @@ def fetch_paiements_from_api(api_url="https://api.example.com/paiements"):
 ##### CUSTOM FIELD #########
 ############################
 def add_custom_field(entity_type, field_name, field_type, is_required):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     try:
         cursor.execute("""
@@ -857,7 +861,7 @@ def add_custom_field(entity_type, field_name, field_type, is_required):
     
     
 def fetch_custom_fields(entity_type=None):
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     if entity_type:
         cursor.execute("""
@@ -882,7 +886,7 @@ def save_custom_field_values(entity_type, entity_id, field_values):
     :param entity_id: ID de l'entité principale (commande, client, etc.).
     :param field_values: Liste de tuples (field_id, valeur).
     """
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     for field_id, value in field_values:
         cursor.execute("""
@@ -904,7 +908,7 @@ def fetch_custom_field_values(entity_type, entity_id, as_dict=False):
                     Si False, retourne une liste de tuples [(field_name, valeur)].
     :return: Un dictionnaire ou une liste en fonction de `as_dict`.
     """
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
     cursor.execute("""
         SELECT cf.field_name, cf.id, cfv.value
@@ -932,7 +936,7 @@ def update_custom_field_values(entity_type, entity_id, field_values):
     :param entity_id: ID de l'entité principale (commande, client, etc.).
     :param field_values: Liste de tuples (field_id, valeur).
     """
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     for field_id, value in field_values:
@@ -966,7 +970,7 @@ def delete_custom_field(field_id):
     Supprime un champ personnalisé et ses valeurs associées.
     :param field_id: ID du champ personnalisé à supprimer.
     """
-    conn = sqlite3.connect('erp.db')
+    conn = connect_to_db()
     cursor = conn.cursor()
 
     # Supprimer les valeurs associées au champ
