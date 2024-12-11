@@ -31,30 +31,6 @@ def fetch_inventaire():
 
 
 ############################
-######## PRODUIT ###########
-############################
-def fetch_produit():
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM produits_PRODUIT") # changer la requête selon le besoin
-    results = cursor.fetchall() 
-    conn.close()
-    results_dict = [
-        {
-            "id_produit": result[0],
-            "prix_unitaire": result[1],
-            "nom_produit": result[2],
-            "description": result[3],
-            "categorie": result[4],
-            "qte_inventaire": result[5],
-            "marge_profit": result[6],
-            "marque_propre": bool(result[9]) 
-        }
-        for result in results
-    ]
-    return results_dict
-
-############################
 ######### HORAIRE ##########
 ############################
 def fetch_horaire():
@@ -1138,3 +1114,227 @@ def delete_custom_field(field_id):
     conn.commit()
 
     conn.close()
+
+
+############################
+######### PRODUITS ##########
+############################
+
+def fetch_products():
+    """Fetch all products with basic details."""
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT 
+                p.id_produit, p.nom_produit, p.qte_inventaire, p.prix_unitaire, 
+                p.description, p.categorie, i.id_inventaire, f.id_fournisseur, d.id_departement
+            FROM produits_PRODUIT p
+            LEFT JOIN inventaires_INVENTAIRE i ON p.id_inventaire = i.id_inventaire
+            LEFT JOIN fournisseurs_FOURNISSEUR f ON p.id_fournisseur = f.id_fournisseur
+            LEFT JOIN info_DEPARTEMENT d ON p.id_departement = d.id_departement
+        """)
+        products = [
+            {
+                "id": row[0],
+                "name": row[1],
+                "stock": row[2],
+                "price": row[3],
+                "description": row[4],
+                "category": row[5],
+                "inventory_id": row[6],
+                "supplier_id": row[7],
+                "department_id": row[8]
+            }
+            for row in cursor.fetchall()
+        ]
+    finally:
+        conn.close()
+
+    return products
+
+
+
+
+def fetch_product_details(product_id):
+    """Fetch detailed information about a specific product."""
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT 
+                p.nom_produit, p.description, p.categorie, p.prix_unitaire, 
+                p.qte_inventaire, i.id_inventaire, f.id_fournisseur, 
+                d.id_departement, p.marque_propre
+            FROM produits_PRODUIT p
+            LEFT JOIN inventaires_INVENTAIRE i ON p.id_inventaire = i.id_inventaire
+            LEFT JOIN fournisseurs_FOURNISSEUR f ON p.id_fournisseur = f.id_fournisseur
+            LEFT JOIN info_DEPARTEMENT d ON p.id_departement = d.id_departement
+            WHERE p.id_produit = ?
+        """, (product_id,))
+        row = cursor.fetchone()
+
+        if row:
+            product = {
+                "name": row[0],
+                "description": row[1],
+                "category": row[2],
+                "price": row[3],
+                "stock": row[4],
+                "inventory_id": row[5],
+                "supplier_id": row[6],
+                "department_id": row[7],
+                "private_label": bool(row[8])
+            }
+            return product
+    finally:
+        conn.close()
+
+    return None
+
+
+
+
+def add_product(name, description, category, price, stock, inventory_id, supplier_id=None, department_id=None, private_label=False):
+    """Add a new product to the database."""
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            INSERT INTO produits_PRODUIT (
+                nom_produit, description, categorie, prix_unitaire, qte_inventaire, 
+                id_inventaire, id_fournisseur, id_departement, marque_propre
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (name, description, category, price, stock, inventory_id, supplier_id, department_id, private_label))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+        
+
+def transfer_product(product_id, source_inventory_id, target_inventory_id, quantity):
+    """Transfer a product between inventories."""
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    try:
+        # Check if enough stock exists in the source inventory
+        cursor.execute("""
+            SELECT qte_inventaire
+            FROM produits_PRODUIT
+            WHERE id_produit = ? AND id_inventaire = ?
+        """, (product_id, source_inventory_id))
+        stock = cursor.fetchone()
+
+        if not stock or stock[0] < quantity:
+            raise ValueError("Stock insuffisant dans l'inventaire source.")
+
+        # Decrease stock in source inventory
+        cursor.execute("""
+            UPDATE produits_PRODUIT
+            SET qte_inventaire = qte_inventaire - ?
+            WHERE id_produit = ? AND id_inventaire = ?
+        """, (quantity, product_id, source_inventory_id))
+
+        # Check if the product already exists in the target inventory
+        cursor.execute("""
+            SELECT id_produit
+            FROM produits_PRODUIT
+            WHERE id_produit = ? AND id_inventaire = ?
+        """, (product_id, target_inventory_id))
+        existing_product = cursor.fetchone()
+
+        if existing_product:
+            # Increase stock in the target inventory
+            cursor.execute("""
+                UPDATE produits_PRODUIT
+                SET qte_inventaire = qte_inventaire + ?
+                WHERE id_produit = ? AND id_inventaire = ?
+            """, (quantity, product_id, target_inventory_id))
+        else:
+            # Create a new product entry in the target inventory
+            cursor.execute("""
+                INSERT INTO produits_PRODUIT (nom_produit, description, categorie, 
+                                              prix_unitaire, qte_inventaire, id_inventaire, 
+                                              id_fournisseur, id_departement, marque_propre)
+                SELECT nom_produit, description, categorie, prix_unitaire, ?, ?, 
+                       id_fournisseur, id_departement, marque_propre
+                FROM produits_PRODUIT
+                WHERE id_produit = ?
+            """, (quantity, target_inventory_id, product_id))
+
+        conn.commit()
+    finally:
+        conn.close()
+
+
+
+############################
+######### INVENTAIRES ##########
+############################
+def fetch_inventories():
+    """Fetch all inventory locations."""
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT id_inventaire, id_emplacement
+            FROM inventaires_INVENTAIRE
+        """)
+        inventories = [
+            {"id": row[0], "location": row[1]} for row in cursor.fetchall()
+        ]
+    finally:
+        conn.close()
+
+    return inventories
+
+
+def fetch_low_stock_products(threshold=10):
+    """Fetch products with stock below a certain threshold."""
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT id_produit, nom_produit, qte_inventaire
+            FROM produits_PRODUIT
+            WHERE qte_inventaire < ?
+        """, (threshold,))
+        products = [
+            {"id": row[0], "name": row[1], "stock": row[2]} for row in cursor.fetchall()
+        ]
+    finally:
+        conn.close()
+
+    return products
+
+
+def order_products(product_ids):
+    """Simulate ordering products."""
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    try:
+        # Example logic to increase stock
+        for product_id in product_ids:
+            cursor.execute("""
+                UPDATE produits_PRODUIT
+                SET qte_inventaire = qte_inventaire + 50
+                WHERE id_produit = ?
+            """, (product_id,))
+
+        conn.commit()
+    finally:
+        conn.close()
+
+
+
+
+
