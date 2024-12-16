@@ -14,7 +14,7 @@ import Onglet_Produit as produit
 import Onglet_config as config
 import fetch
 
-from PySide6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog
+from PySide6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog, QFrame
 from PySide6.QtCore import QTimer, Qt
 from PySide6.QtGui import QPixmap, QIcon
 
@@ -61,7 +61,11 @@ class MainWindow(QMainWindow):
         self.last_index = 0
         self.create_tabs()
 
-        self.add_logo_and_name()
+        # self.add_logo_and_name()
+        
+        # self.add_message_board()
+        
+        self.add_top_section()
 
         # BOUTTONS DU CONTROL BAR
         self.quit_button = QPushButton("Quitter")
@@ -143,26 +147,52 @@ class MainWindow(QMainWindow):
         container.setLayout(main_layout)
         self.setCentralWidget(container)
 
-    def add_logo_and_name(self):
-        top_right_widget = QWidget(self)
-        top_right_layout = QVBoxLayout(top_right_widget)
+    def add_top_section(self):
+        """Ajoute le logo, le nom de l'entreprise et le message board."""
+        top_section_widget = QWidget(self)
+        top_section_layout = QHBoxLayout(top_section_widget)
+
+        # Section gauche : Message Board
+        message_board_frame = QFrame()
+        message_board_frame.setFrameShape(QFrame.Shape.Box)  # Appliquer un cadre pour ressembler à une boîte
+        message_board_frame.setFrameShadow(QFrame.Shadow.Raised)
+        message_board_frame.setStyleSheet("background-color: #f7f7f7; border: 1px solid #ccc; border-radius: 5px;")
+        
+        message_board_layout = QVBoxLayout(message_board_frame)
+        self.message_title = QLabel("Tableau de Bord")
+        self.message_title.setStyleSheet("font-size: 16px; color: black; font-weight: bold;")
+        self.message_title.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        self.message_content = QLabel("Attention employé.e.s !!!!\nLa fin de session s'approche!")
+        self.message_content.setStyleSheet("font-size: 14px; color: black;")
+        self.message_content.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.message_content.setWordWrap(True)
+
+        message_board_layout.addWidget(self.message_title)
+        message_board_layout.addWidget(self.message_content)
+
+        # Section droite : Logo et nom de l'entreprise
+        logo_frame = QFrame()
+        logo_layout = QVBoxLayout(logo_frame)
 
         self.logo_label = QLabel(self)
-        self.logo_pixmap = QPixmap('./logo.png') # file png
-        self.logo_label.setPixmap(self.logo_pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio))  # Resize the logo
+        self.logo_pixmap = QPixmap('./logo.png')  # Fichier PNG
+        self.logo_label.setPixmap(self.logo_pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio))  # Redimensionner le logo
         self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.enterprise_name_label = QLabel("ERP Development", self)  # enterprise name
+        self.enterprise_name_label = QLabel("ERP Development", self)  # Nom de l'entreprise
         self.enterprise_name_label.setStyleSheet("font-size: 18px; color: black; font-weight: bold;")
-        self.enterprise_name_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.enterprise_name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        top_right_layout.addWidget(self.logo_label)
-        top_right_layout.addWidget(self.enterprise_name_label)
-        
-        top_right_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
-        top_right_widget.setLayout(top_right_layout)
+        logo_layout.addWidget(self.logo_label)
+        logo_layout.addWidget(self.enterprise_name_label)
 
-        self.layout().setMenuBar(top_right_widget)
+        # Ajouter les deux sections au layout principal
+        top_section_layout.addWidget(message_board_frame, 2)  # Message Board occupe 2/3
+        top_section_layout.addWidget(logo_frame, 1)  # Logo et nom occupent 1/3
+
+        # Ajouter au layout principal de la fenêtre
+        self.layout().setMenuBar(top_section_widget)
 
     def create_tabs(self):
         for onglet in self.onglets_existants:
