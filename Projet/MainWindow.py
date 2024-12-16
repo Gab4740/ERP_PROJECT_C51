@@ -176,13 +176,8 @@ class MainWindow(QMainWindow):
         logo_layout = QVBoxLayout(logo_frame)
 
         self.logo_label = QLabel(self)
-<<<<<<< Updated upstream
-        self.logo_pixmap = QPixmap('./logo.png')  # Fichier PNG
-        self.logo_label.setPixmap(self.logo_pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio))  # Redimensionner le logo
-=======
         self.logo_pixmap = QPixmap('../logo.png') # file png
         self.logo_label.setPixmap(self.logo_pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio))  # Resize the logo
->>>>>>> Stashed changes
         self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.enterprise_name_label = QLabel("ERP Development", self)  # Nom de l'entreprise
