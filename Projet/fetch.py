@@ -1165,28 +1165,26 @@ def fetch_product_details(product_id):
     try:
         cursor.execute("""
             SELECT 
-                p.nom_produit, p.description, p.categorie, p.prix_unitaire, 
-                p.qte_inventaire, i.id_inventaire, f.id_fournisseur, 
-                d.id_departement, p.marque_propre
+                p.id_produit, p.nom_produit, p.description, p.categorie, p.prix_unitaire, 
+                p.qte_inventaire, n.nom
             FROM produits_PRODUIT p
-            LEFT JOIN inventaires_INVENTAIRE i ON p.id_inventaire = i.id_inventaire
-            LEFT JOIN fournisseurs_FOURNISSEUR f ON p.id_fournisseur = f.id_fournisseur
-            LEFT JOIN info_DEPARTEMENT d ON p.id_departement = d.id_departement
+            LEFT JOIN info_CIE n ON p.id_inventaire = n.id_entite
             WHERE p.id_produit = ?
         """, (product_id,))
         row = cursor.fetchone()
 
         if row:
             product = {
-                "name": row[0],
-                "description": row[1],
-                "category": row[2],
-                "price": row[3],
-                "stock": row[4],
-                "inventory_id": row[5],
-                "supplier_id": row[6],
-                "department_id": row[7],
-                "private_label": bool(row[8])
+                "id": row[0],
+                "name": row[1],
+                "description": row[2],
+                "category": row[3],
+                "price": row[4],
+                "stock": row[5],
+                "inventory_id": row[6]
+                # "supplier_id": row[6],
+                # "department_id": row[7],
+                # "private_label": bool(row[8])
             }
             return product
     finally:
@@ -1334,7 +1332,42 @@ def order_products(product_ids):
     finally:
         conn.close()
 
+def fetch_inventory_id(location_id):
+    """Fetch the inventory ID associated with a specific location."""
+    conn = connect_to_db()
+    cursor = conn.cursor()
 
+    try:
+
+        query = """
+            SELECT nom FROM info_CIE
+            WHERE id_entite = ?
+        """
+
+        cursor.execute(query, (location_id,))
+        row = cursor.fetchone()
+        return row[0] if row else None
+    finally:
+        conn.close()
+
+
+def fetch_inventory_nom(location):
+    """Fetch the inventory ID associated with a specific location."""
+    conn = connect_to_db()
+    cursor = conn.cursor()
+
+    try:
+
+        query = """
+            SELECT id_entite FROM info_CIE
+            WHERE nom = ?
+        """
+
+        cursor.execute(query, (location,))
+        row = cursor.fetchone()
+        return row[0] if row else None
+    finally:
+        conn.close()
 
 
 
