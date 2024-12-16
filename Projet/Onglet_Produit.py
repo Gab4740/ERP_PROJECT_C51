@@ -58,6 +58,15 @@ class Onglet_Produits(Onglet):
         self.product_details = QTextEdit()
         self.product_details.setReadOnly(True)
         right_layout.addWidget(self.product_details)
+        self.product_details.setStyleSheet("""
+            QTextEdit {
+                background-color: #f0f0f0;
+                background-color: #f7f7f7;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 5px;
+            }
+        """)
 
         # Add product button
         self.add_button = QPushButton("Ajouter un produit")
@@ -101,7 +110,7 @@ class Onglet_Produits(Onglet):
         self.order_button = QPushButton("Commander des produits")
         self.order_button.setStyleSheet("""
             QPushButton {
-                background-color: #D22B2B;
+                background-color: #5a9fff;
                 color: white;
                 border: 1px solid #ccc;
                 border-radius: 20px;
@@ -110,7 +119,7 @@ class Onglet_Produits(Onglet):
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #A52A2A;
+                background-color: #4a8fd1;
             }
         """)
         self.order_button.clicked.connect(self.open_order_dialog)

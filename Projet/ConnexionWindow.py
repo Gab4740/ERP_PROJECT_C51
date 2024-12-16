@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QGridLayout, QStackedWidget
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QIcon
 import sys
 import MainWindow
 import client
@@ -30,6 +30,8 @@ class Connexion(QMainWindow):
         self.frame_main_window = MainWindow.MainWindow(screen_info.width(), screen_info.height(), self)
 
         self.stacked_widget.addWidget(self.frame_connexion)
+        
+        self.setWindowIcon(QIcon("logo.png"))
 
         # Affichage initial
         self.basculer_vers_connexion()

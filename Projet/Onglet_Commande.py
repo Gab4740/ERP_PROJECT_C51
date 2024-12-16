@@ -26,45 +26,74 @@ class Onglet_Commande(Onglet):
         self.commandes_list = QListWidget()
         self.commandes_list.itemClicked.connect(self.on_commande_clicked)
         left_layout.addWidget(self.commandes_list)
+        self.commandes_list.setStyleSheet("""
+            QListWidget {
+                background-color: #f7f7f7;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QListWidget::item {
+                padding: 10px;
+                border-radius: 5px;
+                font-size: 30px;
+                color: black;
+            }
+            QListWidget::item:hover {
+                background-color: #98ab96;
+            }
+        """)
 
         main_layout.addLayout(left_layout)
 
         # Détails de la commande
         right_layout = QVBoxLayout()
         self.details_label = QLabel("Détails de la commande:")
+        self.details_label.setStyleSheet("font-weight: bold; font-size: 18px;")
         right_layout.addWidget(self.details_label)
 
         self.commandes_details = QTextEdit()
         self.commandes_details.setReadOnly(True)
         right_layout.addWidget(self.commandes_details)
+        self.commandes_details.setStyleSheet("""
+            QTextEdit {
+                background-color: #f0f0f0;
+                background-color: #f7f7f7;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 5px;
+            }
+        """)
 
         # Boutons
-        self.add_button = QPushButton("Ajouter")
+        self.add_button = QPushButton("Ajouter une commande")
         self.add_button.setStyleSheet("""
             QPushButton {
-                background-color: #70AD47;
-                color: black;
+                background-color: #91AB00;
+                color: white;
                 border: 1px solid #ccc;
                 border-radius: 20px;
                 padding: 10px 20px;
                 font-size: 14px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #476D2D;
+                background-color: #687A00;
             }
         """)
         self.add_button.clicked.connect(self.open_add_dialog)
         right_layout.addWidget(self.add_button)
 
-        self.modify_button = QPushButton("Modifier")
+        self.modify_button = QPushButton("Modifier une commande")
         self.modify_button.setStyleSheet("""
             QPushButton {
                 background-color: #5a9fff;
-                color: black;
+                color: white;
                 border: 1px solid #ccc;
                 border-radius: 20px;
                 padding: 10px 20px;
                 font-size: 14px;
+                font-weight: bold;
             }
             QPushButton:hover {
                 background-color: #4a8fd1;
@@ -73,18 +102,19 @@ class Onglet_Commande(Onglet):
         self.modify_button.clicked.connect(self.open_modify_dialog)
         right_layout.addWidget(self.modify_button)
 
-        self.delete_button = QPushButton("Supprimer")
+        self.delete_button = QPushButton("Supprimer une commande")
         self.delete_button.setStyleSheet("""
             QPushButton {
-                background-color: #C00000;
-                color: black;
+                background-color: #D22B2B;
+                color: white;
                 border: 1px solid #ccc;
                 border-radius: 20px;
                 padding: 10px 20px;
                 font-size: 14px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #740000;
+                background-color: #A52A2A;
             }
         """)
         self.delete_button.clicked.connect(self.cancel_commande)

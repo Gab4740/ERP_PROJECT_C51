@@ -15,7 +15,9 @@ class Onglet_entrepot(Onglet):
         self.entrepot_combo = QComboBox()
         self.load_entrepot_list()
         #self.entrepot_combo.addItems(["Entrepôt A", "Entrepôt B", "Entrepôt C", "Entrepôt D"])
-        layout.addWidget(QLabel("Choisir l'entrepôt:"))
+        self.title2 = QLabel("Choisir l'entrepôt:")
+        self.title2.setStyleSheet("font-weight: bold; font-size: 18px;")
+        layout.addWidget(self.title2)
         layout.addWidget(self.entrepot_combo)
 
         # Champ de recherche (optionnel, selon tes besoins)
@@ -28,13 +30,38 @@ class Onglet_entrepot(Onglet):
         self.recherche_button = QPushButton("Recherche")
         self.recherche_button.clicked.connect(self.on_recherche_clicked)  # Connexion au gestionnaire de clic
         layout.addWidget(self.recherche_button)
+        self.recherche_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5a9fff;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4a8fd1;
+            }
+        """)
 
         # Affichage des résultats ou autre information
         self.resultats_display = QTextEdit()
         self.resultats_display.setReadOnly(True)
-        layout.addWidget(QLabel("Résultats de la recherche:"))
+        self.title = QLabel("Résultats de la recherche:")
+        self.title.setStyleSheet("font-weight: bold; font-size: 18px;")
+        layout.addWidget(self.title)
         layout.addWidget(self.resultats_display)
-
+        self.resultats_display.setStyleSheet("""
+            QTextEdit {
+                background-color: #f0f0f0;
+                background-color: #f7f7f7;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 5px;
+            }
+        """)
+        
         # Ajouter un nouvel entrepôt
         # self.new_entrepot_input = QLineEdit()
         # self.new_entrepot_input.setPlaceholderText("Nom du nouvel entrepôt")
@@ -45,11 +72,39 @@ class Onglet_entrepot(Onglet):
         self.ajouter_button = QPushButton("Ajouter l'entrepôt")
         self.ajouter_button.clicked.connect(self.on_ajouter_clicked)  # Connexion au gestionnaire d'ajout
         layout.addWidget(self.ajouter_button)
+        self.ajouter_button.setStyleSheet("""
+            QPushButton {
+                background-color: #91AB00;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #687A00;
+            }
+        """)
 
         # Bouton pour supprimer un entrepôt
         self.supprimer_button = QPushButton("Supprimer l'entrepôt")
         self.supprimer_button.clicked.connect(self.on_supprimer_clicked)  # Connexion au gestionnaire de suppression
         layout.addWidget(self.supprimer_button)
+        self.supprimer_button.setStyleSheet("""
+            QPushButton {
+                background-color: #D22B2B;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #A52A2A;
+            }
+        """)
         
         self.widget.setLayout(layout)
     

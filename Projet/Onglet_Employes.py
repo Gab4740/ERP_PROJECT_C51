@@ -30,9 +30,23 @@ class Onglet_Employes(Onglet):
         self.shop_combo.currentTextChanged.connect(self.on_shop_changed)
         left_layout.addWidget(self.shop_combo)
         
-        self.refresh_button = QPushButton("refresh")
+        self.refresh_button = QPushButton("Rafraichir")
         self.refresh_button.clicked.connect(self.refresh_page)
         left_layout.addWidget(self.refresh_button)
+        self.refresh_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5a9fff;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight:bold;
+            }
+            QPushButton:hover {
+                background-color: #4a8fd1;
+            }
+        """)
 
         # List widget for employees
         self.employee_list = QListWidget()
@@ -86,7 +100,7 @@ class Onglet_Employes(Onglet):
         """)
 
         # Employee details title
-        self.details_label = QLabel('Détails de l''employé:')
+        self.details_label = QLabel("Détails de l" + "'" + "employé:")
         self.details_label.setStyleSheet("font-weight: bold; font-size: 18px;")
         right_layout.addWidget(self.details_label)
 

@@ -16,7 +16,7 @@ import fetch
 
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QMessageBox, QLineEdit, QDialog
 from PySide6.QtCore import QTimer, Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QIcon
 
 class MainWindow(QMainWindow):
     def __init__(self, width, height, connexion):
@@ -28,6 +28,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Logiciel ERP")                                         #Titre de la topBar
         self.resize(m.floor(width * self.percent), m.floor(height * self.percent))  #Rezize de la fenetre
         self.current_user_role = 0                                                  #Current Visibility
+        self.setWindowIcon(QIcon("logo.png"))
         
         # ONGLETS EXISTANT
         self.onglets_existants = [

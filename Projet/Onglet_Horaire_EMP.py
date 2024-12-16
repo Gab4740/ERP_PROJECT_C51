@@ -21,16 +21,67 @@ class Onglet_horaire(Onglet):
         self.schedule_display = QTextEdit()
         self.schedule_display.setReadOnly(True)
         layout.addWidget(self.schedule_display)
+        self.schedule_display.setStyleSheet("""
+            QTextEdit {
+                background-color: #f0f0f0;
+                background-color: #f7f7f7;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 5px;
+            }
+        """)
 
         # Boutons pour la mise à jour de l'horaire
         self.generate_button = QPushButton("Mise à jour de l'horaire")
         layout.addWidget(self.generate_button)
+        self.generate_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5a9fff;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4a8fd1;
+            }
+        """)
 
         self.prev_week_button = QPushButton("Semaine précédente")
         layout.addWidget(self.prev_week_button)
+        self.prev_week_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5a9fff;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4a8fd1;
+            }
+        """)
 
         self.next_week_button = QPushButton("Semaine suivante")
         layout.addWidget(self.next_week_button)
+        self.next_week_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5a9fff;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4a8fd1;
+            }
+        """)
 
         # Layout pour la modification de l'horaire ou du congé
         modify_layout = QHBoxLayout()
@@ -50,6 +101,20 @@ class Onglet_horaire(Onglet):
         # Bouton pour afficher les congés
         self.leave_button = QPushButton("Afficher les congés")
         layout.addWidget(self.leave_button)
+        self.leave_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5a9fff;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4a8fd1;
+            }
+        """)
 
         # Définir le layout principal sur le widget
         self.widget.setLayout(layout)

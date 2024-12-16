@@ -14,7 +14,9 @@ class Onglet_magasin(Onglet):
         # Choisir le magasin (Chargement des fichiers dans le dossier)
         self.magasin_combo = QComboBox()
         self.load_magasin_list()  # Charge la liste des magasins depuis les fichiers
-        layout.addWidget(QLabel("Choisir le magasin:"))
+        self.title = QLabel("Choisir le magasin:")
+        self.title.setStyleSheet("font-weight: bold; font-size: 18px;")
+        layout.addWidget(self.title)
         layout.addWidget(self.magasin_combo)
 
         # Champ de recherche (optionnel, selon tes besoins)
@@ -27,12 +29,37 @@ class Onglet_magasin(Onglet):
         self.recherche_button = QPushButton("Recherche")
         self.recherche_button.clicked.connect(self.on_recherche_clicked)  # Connexion au gestionnaire de clic
         layout.addWidget(self.recherche_button)
+        self.recherche_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5a9fff;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4a8fd1;
+            }
+        """)
 
         # Affichage des résultats ou autre information
         self.resultats_display = QTextEdit()
         self.resultats_display.setReadOnly(True)
-        layout.addWidget(QLabel("Résultats de la recherche:"))
+        self.title = QLabel("Résultats de la recherche:")
+        self.title.setStyleSheet("font-weight: bold; font-size: 18px;")
+        layout.addWidget(self.title)
         layout.addWidget(self.resultats_display)
+        self.resultats_display.setStyleSheet("""
+            QTextEdit {
+                background-color: #f0f0f0;
+                background-color: #f7f7f7;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 5px;
+            }
+        """)
 
         # Ajouter un nouveau magasin
         # self.new_magasin_input = QLineEdit()
@@ -44,11 +71,39 @@ class Onglet_magasin(Onglet):
         self.ajouter_button = QPushButton("Ajouter le magasin")
         self.ajouter_button.clicked.connect(self.on_ajouter_clicked)  # Connexion au gestionnaire d'ajout
         layout.addWidget(self.ajouter_button)
+        self.ajouter_button.setStyleSheet("""
+            QPushButton {
+                background-color: #91AB00;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #687A00;
+            }
+        """)
 
         # Bouton pour supprimer un magasin
         self.supprimer_button = QPushButton("Supprimer le magasin")
         self.supprimer_button.clicked.connect(self.on_supprimer_clicked)  # Connexion au gestionnaire de suppression
         layout.addWidget(self.supprimer_button)
+        self.supprimer_button.setStyleSheet("""
+            QPushButton {
+                background-color: #D22B2B;
+                color: white;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #A52A2A;
+            }
+        """)
         
         self.widget.setLayout(layout)
 

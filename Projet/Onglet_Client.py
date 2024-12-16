@@ -74,8 +74,6 @@ class Onglet_Client(Onglet):
 
         main_layout.addLayout(left_layout)
         
-        
-        
 
         # Right side: clients details
         right_layout = QVBoxLayout()
@@ -100,18 +98,19 @@ class Onglet_Client(Onglet):
         """)
         
         
-        self.add_button = QPushButton("Ajouter")
+        self.add_button = QPushButton("Ajouter un client")
         self.add_button.setStyleSheet("""
             QPushButton {
-                background-color: #70AD47;
-                color: black;
+                background-color: #91AB00;
+                color: white;
                 border: 1px solid #ccc;
                 border-radius: 20px;
                 padding: 10px 20px;
                 font-size: 14px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #476D2D;
+                background-color: #687A00;
             }
         """)
         self.add_button.clicked.connect(self.open_add_dialog)
@@ -119,15 +118,16 @@ class Onglet_Client(Onglet):
         
         
         
-        self.modify_button = QPushButton("Modifier")
+        self.modify_button = QPushButton("Modifier un client")
         self.modify_button.setStyleSheet("""
             QPushButton {
                 background-color: #5a9fff;
-                color: black;
+                color: white;
                 border: 1px solid #ccc;
                 border-radius: 20px;
                 padding: 10px 20px;
                 font-size: 14px;
+                font-weight: bold;
             }
             QPushButton:hover {
                 background-color: #4a8fd1;
@@ -138,18 +138,19 @@ class Onglet_Client(Onglet):
         
         
         
-        self.delete_button = QPushButton("Supprimer")
+        self.delete_button = QPushButton("Supprimer un client")
         self.delete_button.setStyleSheet("""
             QPushButton {
-                background-color: #C00000;
-                color: black;
+                background-color: #D22B2B;
+                color: white;
                 border: 1px solid #ccc;
                 border-radius: 20px;
                 padding: 10px 20px;
                 font-size: 14px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #740000;
+                background-color: #A52A2A;
             }
         """)
         self.delete_button.clicked.connect(self.supprimer_client_selectionne)

@@ -25,15 +25,16 @@ class Onglet_Config(Onglet):
         self.custom_field_button = QPushButton("Ajouter un champ")
         self.custom_field_button.setStyleSheet("""
             QPushButton {
-                background-color: #70AD47;
-                color: black;
+                background-color: #91AB00;
+                color: white;
                 border: 1px solid #ccc;
                 border-radius: 20px;
                 padding: 10px 20px;
                 font-size: 14px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #476D2D;
+                background-color: #687A00;
             }
         """)
         self.custom_field_button.clicked.connect(self.open_custom_field_dialog)
@@ -64,15 +65,16 @@ class Onglet_Config(Onglet):
         self.delete_field_button = QPushButton("Supprimer un champ")
         self.delete_field_button.setStyleSheet("""
             QPushButton {
-                background-color: #C00000;
-                color: black;
+                background-color: #D22B2B;
+                color: white;
                 border: 1px solid #ccc;
                 border-radius: 20px;
                 padding: 10px 20px;
                 font-size: 14px;
+                font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #740000;
+                background-color: #A52A2A;
             }
         """)
         self.delete_field_button.clicked.connect(self.delete_custom_field)
