@@ -4,7 +4,6 @@ from PySide6.QtGui import QPixmap, QIcon
 import sys
 import MainWindow
 import client
-import multiprocessing  
 import server
 import init_db
 
@@ -31,7 +30,7 @@ class Connexion(QMainWindow):
 
         self.stacked_widget.addWidget(self.frame_connexion)
         
-        self.setWindowIcon(QIcon("logo.png"))
+        self.setWindowIcon(QIcon("../logo.png"))
 
         # Affichage initial
         self.basculer_vers_connexion()
@@ -42,7 +41,7 @@ class Connexion(QMainWindow):
         layout.setContentsMargins(50, 20, 50, 40)
 
         titre = QLabel("ERP Development")
-        logo = QPixmap('./logo.png')
+        logo = QPixmap('../logo.png')
         titre.setPixmap(logo.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio))
         titre.setAlignment(Qt.AlignCenter)
         titre.setStyleSheet("font-size: 18px; font-weight: bold;")

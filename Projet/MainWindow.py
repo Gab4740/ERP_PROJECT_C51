@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Logiciel ERP")                                         #Titre de la topBar
         self.resize(m.floor(width * self.percent), m.floor(height * self.percent))  #Rezize de la fenetre
         self.current_user_role = 0                                                  #Current Visibility
-        self.setWindowIcon(QIcon("logo.png"))
+        self.setWindowIcon(QIcon("../logo.png"))
         
         # ONGLETS EXISTANT
         self.onglets_existants = [
@@ -176,8 +176,13 @@ class MainWindow(QMainWindow):
         logo_layout = QVBoxLayout(logo_frame)
 
         self.logo_label = QLabel(self)
+<<<<<<< Updated upstream
         self.logo_pixmap = QPixmap('./logo.png')  # Fichier PNG
         self.logo_label.setPixmap(self.logo_pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio))  # Redimensionner le logo
+=======
+        self.logo_pixmap = QPixmap('../logo.png') # file png
+        self.logo_label.setPixmap(self.logo_pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio))  # Resize the logo
+>>>>>>> Stashed changes
         self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.enterprise_name_label = QLabel("ERP Development", self)  # Nom de l'entreprise
