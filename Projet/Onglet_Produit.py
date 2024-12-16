@@ -151,7 +151,7 @@ class Onglet_Produits(Onglet):
                 f"Catégorie: {product_details['category']}\n"
                 f"Prix unitaire: {product_details['price']} €\n"
                 f"Stock disponible: {product_details['stock']}\n"
-                # f"Emplacement: {product_details['location']}\n"
+                f"Emplacement: {product_details['inventory_id']}\n"
             )
             self.product_details.setText(details)
             self.selected_product = product_details
@@ -234,19 +234,16 @@ class AddProductDialog(QDialog):
         self.location_combo.clear()
 
         if self.department_radio.isChecked():
-            locations = fetch.fetch_succursale()
-            locations = [{'id': succursale[0], 'nom': succursale[2]} for succursale in locations]
+            locations = fetch.fetch_entrepot()
         elif self.warehouse_radio.isChecked():
             locations = fetch.fetch_entrepot()
-            locations = [{'id': entrepot[0], 'nom': entrepot[2]} for entrepot in locations]
         elif self.branch_radio.isChecked():
             locations = fetch.fetch_succursale()
-            locations = [{'id': succursale[0], 'nom': succursale[2]} for succursale in locations]
         else:
             locations = []
-        
+
         for location in locations:
-            self.location_combo.addItem(location['nom'], location['id'])
+            self.location_combo.addItem(location[2], location[0])  # Nom de l'emplacement, ID de l'emplacement
 
 
     def add_product(self):
@@ -255,29 +252,40 @@ class AddProductDialog(QDialog):
         category = self.category_input.text()
         price = self.price_input.value()
         stock = self.stock_input.value()
-        location_id = self.location_combo.currentData()
+        location = self.location_combo.currentText()
         
-        inventory_type = None
-        if self.department_radio.isChecked():
-            inventory_type = "Department"
-        elif self.warehouse_radio.isChecked():
-            inventory_type = "Entrepot"
-        elif self.branch_radio.isChecked():
-            inventory_type = "Succursale"
+        # # Déterminer le type d'emplacement
+        # if self.department_radio.isChecked():
+        #     inventory_type = "Department"
+        # elif self.warehouse_radio.isChecked():
+        #     inventory_type = "Entrepot"
+        # elif self.branch_radio.isChecked():
+        #     inventory_type = "Succursale"
+        # else:
+        #     inventory_type = None
 
-        if not name or not category or location_id is None:
-            QMessageBox.warning(self, "Erreur", "Tous les champs obligatoires doivent être remplis.")
-            return
+        # if not name or not category or location_id is None or inventory_type is None:
+        #     QMessageBox.warning(self, "Erreur", "Tous les champs obligatoires doivent être remplis.")
+        #     return
 
+        # Récupérer l'ID de l'inventaire
+        # inventory_id = fetch.fetch_inventory_id(location)
+        # if inventory_id is None:
+        #     QMessageBox.warning(self, "Erreur", "L'inventaire pour cet emplacement est introuvable.")
+        #     return
+        
+        location_id = fetch.fetch_inventory_nom(location)
+
+        # Ajouter le produit dans la base de données
         fetch.add_product(
             name=name,
             description=description,
             category=category,
             price=price,
             stock=stock,
-            inventory_id=location_id,  # The selected location ID
-            supplier_id=None,          # Optional, can be updated later
-            department_id=location_id if inventory_type == "Department" else None,
+            inventory_id=location_id,  # L'ID d'inventaire correct
+            supplier_id=None,          # Optionnel
+            department_id=None,
             private_label=False
         )
 
@@ -285,7 +293,7 @@ class AddProductDialog(QDialog):
         self.accept()
 
 
-class TransferProductDialog(QDialog):
+class TransferProductDialog(QDialog): 
     def __init__(self, product, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Transférer un produit")
@@ -293,39 +301,92 @@ class TransferProductDialog(QDialog):
 
         layout = QFormLayout(self)
 
-        self.source_inventory = QComboBox()
-        self.source_inventory.addItems(fetch.fetch_inventories())
-        layout.addRow("Inventaire source:", self.source_inventory)
+        # Source inventory (fixed)
+        # source_inventory_name = fetch.fetch_inventory_id(self.product['inventory_id'])
+        self.source_inventory_label = QLabel(f"{self.product['inventory_id']}")
+        layout.addRow("Inventaire source:", self.source_inventory_label)
 
-        self.target_inventory = QComboBox()
-        self.target_inventory.addItems(fetch.fetch_inventories())
-        layout.addRow("Inventaire cible:", self.target_inventory)
+        # Radio buttons for target inventory type
+        self.target_location_group = QButtonGroup(self)
+        self.department_radio = QRadioButton("Département")
+        self.warehouse_radio = QRadioButton("Entrepôt")
+        self.branch_radio = QRadioButton("Succursale")
 
+        self.target_location_group.addButton(self.department_radio)
+        self.target_location_group.addButton(self.warehouse_radio)
+        self.target_location_group.addButton(self.branch_radio)
+        self.department_radio.setChecked(True)
+
+        location_type_layout = QHBoxLayout()
+        location_type_layout.addWidget(self.department_radio)
+        location_type_layout.addWidget(self.warehouse_radio)
+        location_type_layout.addWidget(self.branch_radio)
+        layout.addRow("Type d'emplacement cible:", location_type_layout)
+
+        # ComboBox for target inventory
+        self.target_inventory_combo = QComboBox()
+        layout.addRow("Inventaire cible:", self.target_inventory_combo)
+
+        # Update inventory options based on the selected type
+        self.department_radio.toggled.connect(self.update_target_inventory_options)
+        self.warehouse_radio.toggled.connect(self.update_target_inventory_options)
+        self.branch_radio.toggled.connect(self.update_target_inventory_options)
+
+        self.update_target_inventory_options()  # Initialize with department options
+
+        # Quantity input
         self.quantity_input = QSpinBox()
-        self.quantity_input.setMaximum(self.product['stock'])
+        self.quantity_input.setRange(1, self.product['stock'])
         layout.addRow("Quantité à transférer:", self.quantity_input)
 
+        # Transfer button
         transfer_button = QPushButton("Transférer")
         transfer_button.clicked.connect(self.transfer_product)
         layout.addWidget(transfer_button)
 
         self.setLayout(layout)
 
+    def update_target_inventory_options(self):
+        """Update the target inventory ComboBox based on the selected type."""
+        self.target_inventory_combo.clear()
+
+        if self.department_radio.isChecked():
+            locations = fetch.fetch_entrepot()
+        elif self.warehouse_radio.isChecked():
+            locations = fetch.fetch_entrepot()
+        elif self.branch_radio.isChecked():
+            locations = fetch.fetch_succursale()
+        else:
+            locations = []
+
+        for location in locations:
+            self.target_inventory_combo.addItem(location[2], location[0])  # location name, location ID
+
     def transfer_product(self):
-        source = self.source_inventory.currentText()
-        target = self.target_inventory.currentText()
+        """Handle the product transfer logic."""
+        target_inventory_id = self.target_inventory_combo.currentText()
         quantity = self.quantity_input.value()
 
-        if source == target:
-            QMessageBox.warning(self.parentWidget(), "Erreur", "Les inventaires source et cible doivent être différents.")
+        if not target_inventory_id:
+            QMessageBox.warning(self, "Erreur", "Veuillez sélectionner un inventaire cible.")
             return
 
         if quantity <= 0 or quantity > self.product['stock']:
-            QMessageBox.warning(self.parentWidget(), "Erreur", "Quantité invalide.")
+            QMessageBox.warning(self, "Erreur", "Quantité invalide.")
             return
+        
+        location_id = fetch.fetch_inventory_nom(self.product['inventory_id'])
+        target_id = fetch.fetch_inventory_nom(target_inventory_id)
 
-        fetch.transfer_product(self.product['id'], source, target, quantity)
-        QMessageBox.information(self.parentWidget(), "Succès", "Produit transféré avec succès.")
+        # Perform the transfer
+        fetch.transfer_product(
+            product_id=self.product['id'],
+            source_inventory_id=location_id,
+            target_inventory_id=target_id,
+            quantity=quantity
+        )
+
+        QMessageBox.information(self, "Succès", "Produit transféré avec succès.")
         self.accept()
 
 
